@@ -155,7 +155,45 @@ The tool agrees with the literature wherever the literature is specific, and it
 is conservative — it asks for a slightly bigger team before self-hosting wins
 than the published rules of thumb do.
 
-## 8. The finding that actually settles it
+## 9. Effectiveness — the least knowable numbers in the model
+
+The flat 15% "open-model time penalty" was the weakest thing in the tool. It was
+an effectiveness assumption presented as an infrastructure one, and it swamped
+every other input. It is now derived from first-pass acceptance, which is at
+least a measurable quantity.
+
+**Benchmark acceptance.** On SWE-bench Verified the frontier sits around 95–96%
+(GPT-5.6 Sol 96.2%, Fable 5 95.0%) and the best open-weight models around 77–81%
+(DeepSeek V4 Pro 80.6%, MiniMax M3 80.5%, Qwen3.6-27B 77.2%). Two warnings come
+with those figures: Verified is close to saturated, so the discriminating
+benchmarks have moved to SWE-bench Pro, FrontierSWE and Terminal-Bench, where
+the gap is wider; and the numbers are overwhelmingly vendor self-reported — one
+tracker lists 0 of 104 entries as independently verified.
+
+**Real-world acceptance is far lower.** On production codebases, top agent
+harnesses land **35–50%** first-pass, with the best model-and-harness combination
+resolving 38.8% pass@1. That is the number that matters, and it is roughly half
+the benchmark figure.
+
+**Defaults chosen:** frontier 45%, open 34%. The frontier figure sits inside the
+published 35–50% band. The open figure applies a ratio slightly harsher than the
+benchmark gap, because the gap widens on the harder, less saturated benchmarks.
+
+**Review burden is real and rising.** Median review duration is reported up
+441.5% since teams adopted AI, and time to first review roughly doubled — which
+is what `minutes_per_attempt` stands in for. Notably, "effective cost per
+accepted task" is itself now a named 2026 benchmark outcome, alongside first-pass
+success, retries and review burden. The framing is not this tool's invention.
+
+**Treat these four fields as the ones to measure yourself.** Every other default
+here can be checked against a vendor price list. These cannot. They vary by
+workload, by repository, by harness, and by what your team will tolerate — an
+open model might be no worse on a well-scoped change and unusable on an
+autonomous refactor. A single acceptance rate is a deliberate simplification of a
+distribution, and the tool's sensitivity pass marks both acceptance fields as
+able to flip the answer rather than merely move the bill.
+
+## 10. The finding that actually settles it
 
 At 60 developers the frontier API bill is about **$200 per developer per month**.
 Those same 60 developers cost roughly **$10,000 each per month** in loaded
@@ -215,3 +253,10 @@ immediately.
 - [Cost of hiring an ML engineer 2026 — Stealth Agents](https://stealthagents.com/research/cost-of-hiring-a-machine-learning-engineer-2026)
 - [MLOps engineer salary 2026 — KORE1](https://www.kore1.com/mlops-engineer-salary-guide/)
 - [Platform engineer salary guide 2026 — KORE1](https://www.kore1.com/platform-engineer-salary-guide-2026/)
+- [Best open-source coding model 2026 — Morph](https://www.morphllm.com/best-open-source-coding-model-2026)
+- [SWE-bench Pro leaderboard — Scale](https://labs.scale.com/leaderboard/swe_bench_pro_public)
+- [Coding agent benchmarks 2026 — Presenc AI](https://presenc.ai/research/coding-agent-benchmarks-2026)
+- [The best coding agent still gets ~6 in 10 changes wrong — DEV](https://dev.to/tessainsley/the-best-coding-agent-still-gets-6-in-10-changes-wrong-that-is-your-review-load-3h5n)
+- [On the use of agentic coding: an empirical study of pull requests on GitHub — arXiv](https://arxiv.org/pdf/2509.14745)
+- [Agentic code review — O'Reilly Radar](https://www.oreilly.com/radar/agentic-code-review/)
+- [GitHub Copilot Enterprise pricing 2026 — CloudZero](https://www.cloudzero.com/blog/github-copilot-enterprise-pricing/)

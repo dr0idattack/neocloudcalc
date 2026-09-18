@@ -78,9 +78,21 @@ vramNeed  = weightsGB + kvGB + overhead
 The 15% covers activations, CUDA graphs and allocator fragmentation. It is a
 rule of thumb, not a measurement.
 
+Card count is **topology-aware**, because nine cards is not "one more than
+eight":
+
 ```
-cardsPerReplica = ceil(vramNeed / vram_per_card)
+raw = ceil(vramNeed / vram_per_card)
+cardsPerReplica = raw ≤ nodeSize ? (next power of two ≥ raw, capped at nodeSize)
+                                 : ceil(raw / nodeSize) × nodeSize
 ```
+
+Inside a node, tensor parallelism wants a power of two. Past the node it wants
+whole nodes, and crossing that boundary costs real throughput — the fabric
+between nodes is far slower than the one inside — so a multi-node replica takes a
+`multiNodeLoss` haircut (default 20%) on both its bandwidth and its compute.
+
+At the defaults this raises the fleet from 3 cards to 4.
 
 ### Throughput
 
@@ -114,6 +126,20 @@ was flattering the option it should have been hardest on. See `SOURCES.md` §6.
 This is still the right first-order answer and wrong at the edges. It ignores
 prefill, the compute-bound regime at very large batch, and interconnect stalls
 in tensor parallelism.
+
+### Prefill and time to first token
+
+Decode is bandwidth bound; prefill is compute bound, so it gets the FLOPs
+treatment:
+
+```
+prefillFlops = 2 × active_params × context_tokens
+ttft         = prefillFlops / (cardsPerReplica × denseTFLOPS × linkEff × efficiency)
+```
+
+This is a **cold** context with nothing cached and no queue. Prefix caching,
+chunked prefill, scheduling and p95 queueing all move it, and none are modelled.
+It is a floor, not a service level.
 
 ### Fleet
 
@@ -156,7 +182,7 @@ scale and the comparison is honest.
 | --- | --- | --- |
 | `capex` | blue | Hardware divided by the write-off period |
 | `power` | orange | Electricity × PUE, rack and cooling, model storage |
-| `people` | aqua | Platform engineers, IT support, cloud plumbing staff |
+| `people` | aqua | Baseline AI platform team, plus platform engineers, IT support and cloud plumbing |
 | `usage` | yellow | Tokens, seat fees, hourly GPU rent |
 | `drag` | magenta | Developer hours lost to a weaker model |
 
@@ -171,19 +197,57 @@ fresh        = inputTokens − cached
 cost = fresh/1e6 × in_rate + cached/1e6 × cache_rate + outputTokens/1e6 × out_rate
 ```
 
-### The developer-time penalty
+### Effectiveness, and the developer-time penalty it produces
+
+Earlier versions charged a flat "open-model time penalty" percentage. That was an
+**effectiveness assumption wearing an infrastructure costume**, and it hid the
+mechanism. It is now derived from the thing that actually differs between models:
+how often a first attempt is accepted.
 
 ```
-dragCost = devs × hours_in_tool × working_days × penalty% × loaded_hourly_rate
+attemptsF = 1 / frontier_first_pass_acceptance
+attemptsO = 1 / open_first_pass_acceptance
+
+extraMinutesPerTask = minutes_per_attempt × (attemptsO − attemptsF)
+dragHours           = devs × accepted_tasks_per_day × working_days × extraMinutesPerTask / 60
+dragCost            = dragHours × loaded_hourly_rate
+dragPct             = dragHours / (devs × hours_in_tool × working_days) × 100
 ```
 
-Applied to all three own-hardware routes and to none of the hosted ones.
+`dragPct` is now an **output**, shown live under the Simple-mode slider and in
+every export, so the intuition the old field gave survives the change.
 
-**This is the single most consequential assumption in the tool, and it is
-deliberately exposed as one field.** The open-weight model you can host is not
-the frontier model you rent. If your work genuinely does not need frontier
-quality, set the penalty to 0 and the ranking flips. The tool does not argue the
-point; it makes the argument visible and hands you the dial.
+**A weaker model costs twice.** More attempts per accepted task means more
+developer minutes *and* more tokens for the same shipped work:
+
+```
+openTokenMultiplier = attemptsO / attemptsF
+```
+
+Own-hardware routes are sized and billed on `tokens × openTokenMultiplier`,
+because holding **accepted output** constant is the only fair comparison. At the
+defaults that is 1.32×, and it feeds straight into fleet sizing.
+
+Every route also reports `perTask = total / accepted_tasks_per_month`. Accepted
+tasks are constant across routes by construction, so **cost per accepted task is
+comparable in a way cost per developer per month is not.**
+
+What this does *not* do is remove the uncertainty — it relocates it. Acceptance
+rates are far less knowable than token prices, and a modelled number can hide a
+guess better than a typed one. The defaults are grounded in published figures
+(`SOURCES.md` §9) and are the first thing to measure on your own repositories.
+
+### The baseline platform team
+
+Every centralised route carries `platformFte`. A gateway, secrets, IAM,
+observability, evals, rate-limit handling, cost controls and a security review do
+not appear only because the endpoint is Bedrock rather than Anthropic. Charging
+that overhead solely to the cloud platforms quietly flattered the direct APIs —
+a fairness bug, not a modelling choice.
+
+Laptops are exempt: nothing is centralised. Bedrock, Azure and the self-hosted
+routes pay this baseline **plus** their own incremental team (`cloudOps` and
+`adminFte` respectively).
 
 ### The eight routes
 
@@ -196,7 +260,15 @@ point; it makes the argument visible and hands you the dial.
 | Azure OpenAI | — | — | cloud ops FTE | tokens |
 | Anthropic API | — | — | — | tokens |
 | OpenAI API | — | — | — | tokens |
-| Flat per-seat plans | — | — | — | devs × seat price |
+| Flat per-seat plans | — | — | baseline platform | devs × (seat + platform seat) |
+
+Seat plans are picked from a small catalogue. `base` is a platform seat the plan
+rides on — GitHub Copilot Enterprise at $39 requires a GitHub Enterprise Cloud
+seat at $21 — and the **entitlement switch** drops it, because many buyers
+already hold that seat and their incremental decision is $39, not $60.
+
+Metered token rates take a `apiDiscount` haircut for negotiated or committed
+pricing. Seats never do.
 
 Fleet power carries a ×1.25 uplift over raw board power for host, NIC and fans.
 
@@ -504,7 +576,12 @@ Not modelled, and worth saying out loud:
 - Spot, committed-use and reserved-capacity discounts
 - Security review, compliance, and data-residency work
 - Fine-tuning, evaluation harnesses, and model upgrade cycles
-- Prefill cost and the compute-bound regime at very large batch
+- p95 and p99 latency, queueing, and any throughput/latency service level
+- Prefix caching, chunked prefill, speculative decoding and scheduler behaviour
+- The distribution of context lengths, as opposed to one average
+- The compute-bound regime at very large batch
+- Hybrid routing: cheap model first, escalate on failure
+- Defect escape rate, and the cost of a bad change that gets merged
 - Spot and committed-use discounts, reserved capacity, enterprise agreements
 - Network egress
 - The cost of shipping a year behind

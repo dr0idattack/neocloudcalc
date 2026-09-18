@@ -104,32 +104,48 @@ re-validated for colour-vision-deficiency separation, not a hue picked by eye.
 
 This tool makes an argument about money. Three rules protect it:
 
-1. **The developer-time penalty stays one visible field.** It is the assumption
-   that decides the whole ranking. Do not bury it, do not hard-code it, do not
-   quietly vary it per model. Make it obvious and let the user turn it off.
-2. **Cost and capacity stay separate.** A route that is cheap and cannot carry
+1. **Effectiveness stays derived, and its cost stays visible.** The
+   developer-time penalty is computed from first-pass acceptance, never typed in
+   as a flat percentage — that was an effectiveness assumption wearing an
+   infrastructure costume. But the derived percentage must stay on screen, next
+   to the acceptance slider and in every export, because a modelled number can
+   hide a guess better than a typed one. Deriving it relocated the uncertainty;
+   it did not remove it.
+2. **A weaker model costs twice.** More attempts per accepted task means more
+   developer minutes *and* more tokens, so own-hardware routes are sized and
+   billed on `tokens × openTokenMultiplier`. Dropping the second half makes
+   self-hosting look better than it is, which is the failure mode this tool
+   exists to avoid.
+3. **Every centralised route pays the baseline platform team.** Gateways,
+   secrets, IAM, observability, evals and security review do not appear only
+   because the endpoint is Bedrock. Charging that to the cloud platforms alone
+   was a fairness bug; do not reintroduce it.
+4. **Replica sizing stays topology-aware.** A power of two inside a node, whole
+   nodes past it, and an interconnect haircut for multi-node. `ceil(vram/card)`
+   alone claims nine cards is one more than eight.
+5. **Cost and capacity stay separate.** A route that is cheap and cannot carry
    the team is not cheap. Do not collapse the capacity table into the cost chart.
-3. **The labour switch stays wired to the model.** It is not a display toggle.
+6. **The labour switch stays wired to the model.** It is not a display toggle.
    Off, it must zero every labour line on every route, so the ranking reflects
    the assumption. A switch that only hides rows would let someone believe a
    self-hosting case that quietly ships the work to an imaginary team.
-4. **Accounting view and cash view stay distinct.** Amortised capital in the
+7. **Accounting view and cash view stay distinct.** Amortised capital in the
    monthly comparison, the real cheque in the cumulative chart. Collapsing them
    loses the thing a finance reader came for.
-5. **Throughput stays calibrated.** The batch cap of 32 and the single-stream
+8. **Throughput stays calibrated.** The batch cap of 32 and the single-stream
    ceiling exist because the uncapped model overstated throughput by 2.3x
    against measured vLLM numbers, which quietly flattered self-hosting. If you
    change either, re-check them against published benchmarks and record it in
    `SOURCES.md`.
-6. **Export stays in sync with the model.** A new input, route or cost component
+9. **Export stays in sync with the model.** A new input, route or cost component
    must appear in the CSV and in the printed appendix. An export that silently
    omits an assumption is worse than no export — someone will act on it.
-7. **Keep both download paths.** A download the page starts itself is inert
+10. **Keep both download paths.** A download the page starts itself is inert
    inside embedded viewers, which instead grant one through the `downloads`
    capability; served as an ordinary page it is the other way round. The handler
    tries the capability and falls back to a blob. Deleting either half breaks
    export in one of the two places it runs, and neither failure is loud.
-8. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
+11. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
    modelled. If you add a simplification, add it there.
 
 ## Before you push
