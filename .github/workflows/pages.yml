@@ -1,0 +1,45 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - claude/coding-model-tco-calculator-ssy7bx
+  workflow_dispatch:
+
+# Let the workflow publish to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time. Don't cancel a run that is already shipping.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The site is a single static file with no build step, so the repo
+      # root is the artifact. .nojekyll stops Pages running Jekyll over it.
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp README.md ARCHITECTURE.md SOURCES.md AGENTS.md _site/ 2>/dev/null || true
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
