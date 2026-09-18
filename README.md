@@ -158,8 +158,11 @@ Copy is there for anywhere that will not let a page save one.
 
 ## Deploying it
 
-`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push.
-It needs one switch flipped first: **Settings → Pages → Source → GitHub Actions**.
+`.github/workflows/ci.yml` does two things. On every pull request it runs
+`scripts/check.mjs`, which verifies the inline script parses, every control id
+the model reads is defined, and every theme token is declared on the bare
+`:root`. On a push to `main` it publishes the site to GitHub Pages, enabling
+Pages itself on the first run.
 
 ## Files
 
@@ -168,5 +171,6 @@ It needs one switch flipped first: **Settings → Pages → Source → GitHub Ac
 | `index.html` | The entire application — markup, styles, sizing, capacity, cash and cost model |
 | `ARCHITECTURE.md` | Specification: catalogues, formulas, design tokens, omissions |
 | `SOURCES.md` | Every default's provenance, the corrections, and validation against published figures |
-| `.github/workflows/pages.yml` | Publishes the site to GitHub Pages |
+| `.github/workflows/ci.yml` | Validates pull requests, publishes `main` to GitHub Pages |
+| `scripts/check.mjs` | The validation run in CI; run it locally with `node scripts/check.mjs` |
 | `AGENTS.md` | Directions for AI agents working in this repo |
