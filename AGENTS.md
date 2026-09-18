@@ -27,6 +27,11 @@ pulls. Do not add more.
    contract with the user: they get to disagree with you.
 5. **Never present a default as a fact.** Prices, quotas and model specs move.
    The footer says so; keep it saying so.
+6. **Changing a default means updating `SOURCES.md`.** Every number in the
+   catalogues and rate panels has a recorded provenance. A default with no
+   source is a guess wearing a suit.
+7. **Simple mode stays at three levers.** A fourth is always tempting and always
+   wrong — that is what Advanced is for.
 
 ## How to add things
 
@@ -97,7 +102,12 @@ This tool makes an argument about money. Three rules protect it:
    quietly vary it per model. Make it obvious and let the user turn it off.
 2. **Cost and capacity stay separate.** A route that is cheap and cannot carry
    the team is not cheap. Do not collapse the capacity table into the cost chart.
-3. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
+3. **Throughput stays calibrated.** The batch cap of 32 and the single-stream
+   ceiling exist because the uncapped model overstated throughput by 2.3x
+   against measured vLLM numbers, which quietly flattered self-hosting. If you
+   change either, re-check them against published benchmarks and record it in
+   `SOURCES.md`.
+4. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
    modelled. If you add a simplification, add it there.
 
 ## Before you push
@@ -109,7 +119,13 @@ There are no tests. Open `index.html` in a browser and check:
 - Switching model, precision and accelerator all move the sizing strip.
 - Both themes are legible — toggle, and also check with the OS set to dark and no
   explicit choice made.
-- The page does not scroll sideways at 400px wide.
+- The page does not scroll sideways at any width. Breakpoints are at 1099px,
+  679px and 399px, deliberately off the common device widths — Chrome evaluates
+  media queries against the viewport including the scrollbar, so a breakpoint on
+  1024 flips on and off at iPad-landscape width. Do not "tidy" them to round
+  numbers.
+- Simple and Advanced both render, and switching between them keeps the numbers
+  in step.
 - No `NaN`, no `Infinity`, no `$0` where a figure belongs. Setting Developers to
   0 is the fastest way to find a divide-by-zero.
 
