@@ -411,11 +411,17 @@ sections. Values are raw numbers with no currency symbols or thousands
 separators, so they compute on arrival. The run line is the second row, so a
 spreadsheet sitting in someone's inbox still says what produced it.
 
-Copy is the primary action and download is secondary, because **embedded viewers
-block downloads a page starts itself** — `<a download>` with a blob href is inert
-inside the artifact sandbox. Copy falls back from the async Clipboard API to a
-hidden textarea and `execCommand`, and tells the user to press Ctrl+C if both
-fail. Both buttons flash their result rather than firing a dialog.
+Download takes two paths from one file. **Embedded viewers block a download a
+page starts itself** — `<a download>` with a blob href is inert inside the
+artifact sandbox — but they grant one through the `downloads` capability, so the
+handler tries `claude.use("downloads")` first and falls back to the blob when the
+capability is absent, which is the case whenever the page is served normally.
+Rejections are branched by code: `declined` reads as "Cancelled", `rate_limited`
+as "Try again", anything else points at Copy.
+
+Copy stays for anywhere neither path works. It falls back from the async
+Clipboard API to a hidden textarea and `execCommand`, and tells the user to press
+Ctrl+C if both fail. Every button flashes its result rather than firing a dialog.
 
 ## 9. Responsive behaviour
 

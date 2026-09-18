@@ -124,8 +124,11 @@ This tool makes an argument about money. Three rules protect it:
 6. **Export stays in sync with the model.** A new input, route or cost component
    must appear in the CSV and in the printed appendix. An export that silently
    omits an assumption is worse than no export — someone will act on it.
-7. **Copy stays the primary export.** Downloads a page starts itself are inert
-   inside embedded viewers. Do not promote the download button.
+7. **Keep both download paths.** A download the page starts itself is inert
+   inside embedded viewers, which instead grant one through the `downloads`
+   capability; served as an ordinary page it is the other way round. The handler
+   tries the capability and falls back to a blob. Deleting either half breaks
+   export in one of the two places it runs, and neither failure is loud.
 8. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
    modelled. If you add a simplification, add it there.
 
