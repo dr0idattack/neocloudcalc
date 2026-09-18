@@ -61,6 +61,13 @@ Add a tuple to the right group in `GROUPS`: `[id, label, unit, default, step]`.
 It renders itself. Read it in the model with `v("id")`. Do not add a field
 without using it.
 
+### Replaying the model at other inputs
+
+Use `withOv({id: value}, compute)`. Do not write a second copy of the cost model
+for a scan or a chart — that is how the two drift apart.
+
+Anything called from inside `withOv` must not call `render()`.
+
 ### A new route
 
 Push an object into the `rows` array in `compute()`. It must carry all five cost
@@ -102,12 +109,19 @@ This tool makes an argument about money. Three rules protect it:
    quietly vary it per model. Make it obvious and let the user turn it off.
 2. **Cost and capacity stay separate.** A route that is cheap and cannot carry
    the team is not cheap. Do not collapse the capacity table into the cost chart.
-3. **Throughput stays calibrated.** The batch cap of 32 and the single-stream
+3. **The labour switch stays wired to the model.** It is not a display toggle.
+   Off, it must zero every labour line on every route, so the ranking reflects
+   the assumption. A switch that only hides rows would let someone believe a
+   self-hosting case that quietly ships the work to an imaginary team.
+4. **Accounting view and cash view stay distinct.** Amortised capital in the
+   monthly comparison, the real cheque in the cumulative chart. Collapsing them
+   loses the thing a finance reader came for.
+5. **Throughput stays calibrated.** The batch cap of 32 and the single-stream
    ceiling exist because the uncapped model overstated throughput by 2.3x
    against measured vLLM numbers, which quietly flattered self-hosting. If you
    change either, re-check them against published benchmarks and record it in
    `SOURCES.md`.
-4. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
+6. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
    modelled. If you add a simplification, add it there.
 
 ## Before you push
@@ -126,6 +140,9 @@ There are no tests. Open `index.html` in a browser and check:
   numbers.
 - Simple and Advanced both render, and switching between them keeps the numbers
   in step.
+- The labour switch changes the totals, not just the bill of materials.
+- Dragging a slider stays smooth. Each render runs roughly 200 extra `compute()`
+  calls for the break-even scan and sensitivity pass; if you add more, check it.
 - No `NaN`, no `Infinity`, no `$0` where a figure belongs. Setting Developers to
   0 is the fastest way to find a divide-by-zero.
 

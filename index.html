@@ -219,6 +219,67 @@ button,select,input{font-family:inherit}
 .capwrap{overflow-x:auto}
 .capfoot{padding:10px 14px;font-size:11.5px;color:var(--muted);background:var(--surface-2);border-top:1px solid var(--line-soft);line-height:1.5}
 
+/* ── cash chart ─────────────────────────────────────────────────────────── */
+.cash{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.cash .cc{padding:12px 14px 4px}
+.cash svg{display:block;width:100%;height:auto}
+.crossings{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--surface);border-top:1px solid var(--line)}
+.cx{background:var(--surface);padding:11px 14px;outline:1px solid var(--line-soft);min-width:0}
+.cx .k{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.cx .v{font-size:15px;font-weight:600;letter-spacing:-0.015em;margin-top:3px}
+.cx .n{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.cx.yes .v{color:var(--good)} .cx.no .v{color:var(--bad)}
+
+/* ── bill of materials ──────────────────────────────────────────────────── */
+.bom{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.bomhead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.bomhead b{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.switch{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);cursor:pointer;user-select:none}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{width:34px;height:19px;border-radius:11px;background:var(--surface-3);border:1px solid var(--line);position:relative;transition:background .15s;flex:none}
+.switch .track::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.switch input:checked + .track{background:var(--accent-soft);border-color:var(--accent)}
+.switch input:checked + .track::after{transform:translateX(15px);background:var(--accent)}
+.switch input:focus-visible + .track{outline:2px solid var(--accent);outline-offset:2px}
+.bomtbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.bomtbl td{padding:6px 14px;border-bottom:1px solid var(--line-soft);text-align:right;white-space:nowrap}
+.bomtbl td:first-child{text-align:left;white-space:normal;width:48%}
+.bomtbl td.q{color:var(--muted);font-size:11.5px}
+.bomtbl tr.grp td{
+  background:var(--surface-2);font-size:10px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);padding:8px 14px;text-align:left;
+}
+.bomtbl tr.sub td{font-weight:600;border-bottom:1px solid var(--line)}
+.bomtbl tr.tot td{font-weight:600;font-size:14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.bomtbl tr.off td{color:var(--muted);opacity:.5}
+.bomfoot{padding:10px 14px;font-size:11.5px;color:var(--muted);line-height:1.5;background:var(--surface-2)}
+
+/* ── sensitivity ────────────────────────────────────────────────────────── */
+.sens{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:14px 16px 12px}
+.srow{display:grid;grid-template-columns:minmax(120px,1.1fr) minmax(0,2fr) 92px;gap:12px;align-items:center;padding:4px 0}
+.srow .sn{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.strack{position:relative;height:18px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.strack .mid{position:absolute;top:0;bottom:0;width:1px;background:var(--line);left:50%}
+.strack i{position:absolute;top:3px;height:12px;border-radius:2px}
+.srow .sv{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.sfoot{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft)}
+
+/* ── beyond cost ────────────────────────────────────────────────────────── */
+.beyond{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface)}
+.beyond th{
+  text-align:left;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);
+}
+.beyond td{padding:8px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top;line-height:1.4;color:var(--ink-2)}
+.beyond td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+.beyond tr:last-child td{border-bottom:0}
+.beyondwrap{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.beyondscroll{overflow-x:auto}
+.chip{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.chip.g{background:var(--good-soft);color:var(--good)}
+.chip.a{background:var(--warn-soft);color:var(--warn)}
+.chip.r{background:var(--bad-soft);color:var(--bad)}
+
 /* ── section heads ──────────────────────────────────────────────────────── */
 .sechead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between;margin-bottom:10px}
 .sechead h2{margin:0;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
@@ -233,7 +294,7 @@ button,select,input{font-family:inherit}
 .row .lab{min-width:0}
 .row .lab b{display:block;font-size:12.5px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .lab span{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.row.top .lab b::after{content:"Cheapest";margin-left:7px;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--good);background:var(--good-soft);padding:2px 5px;border-radius:3px;vertical-align:1px}
+.row.top .lab span::after{content:" \00b7 Cheapest";margin-left:0;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--good);background:var(--good-soft);padding:2px 5px;border-radius:3px;vertical-align:1px}
 .plot{height:26px;border-radius:4px;background:var(--surface-2);
   background-image:linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);background-size:25% 100%;
   border:1px solid var(--line-soft);display:flex;overflow:hidden}
@@ -330,6 +391,23 @@ footer b{color:var(--ink-2)}
   .capwrap{overflow-x:visible}
   .hb{justify-content:flex-end}
 
+  .srow{grid-template-columns:minmax(0,1fr) 84px;gap:3px 10px}
+  .srow .strack{grid-column:1/-1}
+  .bomtbl td:first-child{width:auto}
+  .bomtbl td{padding:6px 12px}
+  /* same block-per-row treatment as the capacity table */
+  .beyond,.beyond tbody,.beyond tr,.beyond td{display:block;width:100%}
+  .beyond thead{display:none}
+  .beyond tr{padding:11px 14px;border-bottom:1px solid var(--line)}
+  .beyond tr:last-child{border-bottom:0}
+  .beyond td{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    padding:4px 0;border-bottom:0;text-align:right}
+  .beyond td:first-child{padding:0 0 6px;text-align:left;white-space:normal;font-size:13px}
+  .beyond td[data-label]::before{
+    content:attr(data-label);font-size:10px;font-weight:600;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--muted);text-align:left;flex:none;
+  }
+  .beyondscroll{overflow-x:visible}
   .chart{--labw:auto;padding:14px 12px 12px}
   .axis{display:none}
   .row{grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:7px 0}
@@ -405,6 +483,7 @@ footer b{color:var(--ink-2)}
     <details class="panel" hidden><summary>Money &amp; time</summary><div class="fields" id="f-money"></div></details>
     <details class="panel" hidden><summary>Accelerators</summary><div class="fields" id="f-gpu"></div></details>
     <details class="panel" hidden><summary>Facility &amp; laptops</summary><div class="fields" id="f-iron"></div></details>
+    <details class="panel" hidden><summary>Build &amp; labour</summary><div class="fields" id="f-build"></div></details>
     <details class="panel" hidden><summary>Model rates</summary><div class="fields" id="f-rates"></div></details>
   </aside>
 
@@ -434,12 +513,49 @@ footer b{color:var(--ink-2)}
     </section>
 
     <section>
+      <div class="sechead"><h2>Cash out of the door, month by month</h2><p>Capital lands on day one. This is the cheque, not the accounting entry.</p></div>
+      <div class="cash">
+        <div class="cc" id="cashchart"></div>
+        <div class="crossings" id="crossings"></div>
+      </div>
+    </section>
+
+    <section>
       <div class="sechead"><h2>Monthly cost, by where it goes</h2><p>One shared scale. Hover a block for the exact figure.</p></div>
       <div class="chart">
         <div class="axis" id="axis"></div>
         <div class="rows" id="rows"></div>
         <div class="legend" id="legend"></div>
       </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Bill of materials</h2><p>If you are set on owning the iron, this is the list.</p></div>
+      <div class="bom">
+        <div class="bomhead">
+          <b id="bomtitle">Build</b>
+          <label class="switch" for="labour">
+            <input type="checkbox" id="labour" checked>
+            <span class="track"></span>
+            <span>Count setup &amp; running labour</span>
+          </label>
+        </div>
+        <div style="overflow-x:auto"><table class="bomtbl"><tbody id="bombody"></tbody></table></div>
+        <div class="bomfoot" id="bomfoot"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>What moves the answer</h2><p>Each assumption swung 30% either way. Orange bars change the answer.</p></div>
+      <div class="sens"><div id="sensrows"></div><div class="sfoot" id="sensfoot"></div></div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Beyond cost</h2><p>The part no calculator settles.</p></div>
+      <div class="beyondwrap"><div class="beyondscroll"><table class="beyond">
+        <thead><tr><th>Route</th><th>Where your code goes</th><th>Time to stand up</th><th>If you change your mind</th><th>Needs a hire</th></tr></thead>
+        <tbody id="beyondbody"></tbody>
+      </table></div></div>
     </section>
 
     <section>
@@ -547,6 +663,17 @@ var GROUPS = {
     ["itRate","IT support cost","$/h",75,5],
     ["kwhOffice","Office electricity","$/kWh",0.14,0.01]
   ],
+  "f-build": [
+    ["netFabric","Fabric, optics &amp; cabling","$/host",12000,500],
+    ["installHost","Rack, PDU &amp; smart hands","$/host",3500,250],
+    ["spares","Spare cards held","% of fleet",5,1],
+    ["warranty","Hardware support","%/yr of capex",10,1],
+    ["setupArch","Architecture &amp; procurement","h",80,8],
+    ["setupRack","Rack, cable &amp; bring-up","h/host",60,8],
+    ["setupStack","Serving stack &amp; cluster","h",120,8],
+    ["setupEval","Model evaluation","h",80,8],
+    ["setupSec","Security &amp; compliance review","h",60,8]
+  ],
   "f-rates": [
     ["anIn","Anthropic · input","$/M",2,0.05],
     ["anOut","Anthropic · output","$/M",10,0.25],
@@ -603,7 +730,16 @@ Object.keys(GROUPS).forEach(function(id){
   document.getElementById(id).innerHTML = html;
 });
 
-function v(id){ var e = document.getElementById(id); var n = e ? parseFloat(e.value) : 0; return isFinite(n) && n >= 0 ? n : 0; }
+/* Inputs normally come from the DOM. OV lets the model be replayed at other
+   values — that is how break-even scans and the sensitivity pass work. */
+var OV = null;
+function v(id){
+  if(OV && OV[id] !== undefined) return OV[id];
+  var e = document.getElementById(id); var n = e ? parseFloat(e.value) : 0;
+  return isFinite(n) && n >= 0 ? n : 0;
+}
+function withOv(o, fn){ var prev = OV; OV = o; try { return fn(); } finally { OV = prev; } }
+function labourOn(){ var c = document.getElementById("labour"); return !c || c.checked; }
 function pick(list, id){ var s = document.getElementById(id); for(var i=0;i<list.length;i++) if(list[i].id === s.value) return list[i]; return list[0]; }
 
 function money(n){
@@ -699,62 +835,96 @@ function compute(){
   var fleetKw = s.gpus * v("gpuW") / 1000 * 1.25;          /* +25% for host, NIC, fans */
   var hosts   = Math.ceil(s.gpus / 8);
 
+  /* ── bill of materials for the buy-it-yourself route ─────────────────
+     Capital is itemised rather than rolled into one number, because this is
+     the list that goes to procurement. The cost model still amortises it;
+     the BOM shows the cheque. */
+  var eng = v("fteCost") / 2080;                           /* loaded engineer hour */
+  var cards       = s.gpus * v("gpuBuy");
+  var sparesCost  = cards * (v("spares") / 100);
+  var chassis     = hosts * v("hostCost");
+  var fabric      = hosts * v("netFabric");
+  var install     = hosts * v("installHost");
+  var setupHours  = v("setupArch") + hosts * v("setupRack") + v("setupStack")
+                  + v("setupEval") + v("setupSec");
+  var setupLabour = labourOn() ? setupHours * eng : 0;
+  var hwCapex     = cards + sparesCost + chassis + fabric + install;
+  var buyUpfront  = hwCapex + setupLabour;
+  var warrantyMo  = hwCapex * (v("warranty") / 100) / 12;
+  var adminMo     = labourOn() ? v("adminFte") * fteMo : 0;
+  var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo : 0;
+
+  /* Renting skips the hardware but not the bring-up: you still stand up the
+     serving stack, evaluate the model and pass a security review. */
+  var rentSetup   = labourOn()
+    ? (v("setupStack") + v("setupEval") + v("setupSec") + v("setupArch") / 2) * eng : 0;
+
+  var BOM = {
+    hosts:hosts, cards:cards, sparesCost:sparesCost, chassis:chassis, fabric:fabric,
+    install:install, setupHours:setupHours, setupLabour:setupLabour, hwCapex:hwCapex,
+    buyUpfront:buyUpfront, warrantyMo:warrantyMo, adminMo:adminMo, eng:eng,
+    rentSetup:rentSetup, storMo:storMo, fleetKw:fleetKw
+  };
+
   var rows = [
     { id:"laptop", name:"Local model on laptops", group:"Your own hardware",
       note: s.fitsLaptop
         ? s.m.label + " at " + s.q.label + " needs about " + num(s.weightsGb*1.15) + " GB — it fits in " + num(v("lapRam")) + " GB of unified memory."
         : s.m.label + " at " + s.q.label + " needs about " + num(s.weightsGb*1.15) + " GB and will not fit in " + num(v("lapRam")) + " GB. Pick a smaller model or a harder quant.",
+      upfront: devs * v("lapUplift"),
       capex: devs * v("lapUplift") / amort,
       power: devs * (v("lapWatts")/1000) * v("codeHrs") * days * v("kwhOffice"),
-      people: devs * (v("lapSupport")/12) * v("itRate"),
+      people: labourOn() ? devs * (v("lapSupport")/12) * v("itRate") : 0,
       usage: 0, drag: dragCost,
       capTps: devs * lapTps, unitTps: lapTps, perDevScale: true, scaling:"One laptop, one session. Adding developers adds laptops, so it never runs out — it is just slow." },
 
     { id:"buy", name:"GPUs you buy", group:"Your own hardware",
       note: s.gpus + " x " + s.g.label + " — " + s.replicas + " replica" + (s.replicas === 1 ? "" : "s")
         + " of " + s.gpusPerReplica + ". Written down over " + amort + " months. Idle hours cost what busy ones do.",
-      capex: (s.gpus * v("gpuBuy") + hosts * v("hostCost")) / amort,
-      power: fleetKw * v("pue") * 730 * v("kwhDc") + fleetKw * v("coloKw") + storMo,
-      people: v("adminFte") * fteMo,
+      upfront: buyUpfront,
+      capex: hwCapex / amort,
+      power: fleetKw * v("pue") * 730 * v("kwhDc") + fleetKw * v("coloKw") + storMo + warrantyMo,
+      people: adminMo + setupLabour / amort,
       usage: 0, drag: dragCost,
       capTps: fleetTps, scaling:"Fixed ceiling. Past it you buy another replica and wait months for delivery." },
 
     { id:"rent", name:"GPUs you rent by the hour", group:"Your own hardware",
       note: s.gpus + " x " + s.g.label + " on demand at " + v("rentUtil") + "% uptime. No capex, no rack — you pay for every hour the fleet is up, busy or not.",
+      upfront: rentSetup,
       capex: 0,
       power: storMo,
-      people: v("adminFte") * fteMo,
+      people: adminMo + rentSetup / amort,
       usage: s.gpus * v("gpuRent") * 730 * (v("rentUtil")/100),
       drag: dragCost,
       capTps: fleetTps, scaling:"Same ceiling as buying, but you can add replicas in minutes — if the region has stock." },
 
     { id:"bedrock", name:"AWS Bedrock", group:"Cloud platform",
       note:"Frontier model inside your AWS account. Same token rate as going direct, plus the people who wire up VPC, IAM and logging.",
-      capex:0, power:0, people: v("cloudOps") * fteMo,
+      upfront:0, capex:0, power:0, people: cloudOpsMo,
       usage: tokens(v("bedIn"), v("bedOut"), v("bedCache")), drag:0,
       capTps: v("bedTpm") * 1000 / 60, scaling:"Bounded by your account quota. Raising it is a support ticket, not a purchase order." },
 
     { id:"azure", name:"Azure OpenAI", group:"Cloud platform",
       note:"Frontier model inside your Azure tenant. Same trade as Bedrock: enterprise plumbing costs people, not tokens.",
-      capex:0, power:0, people: v("cloudOps") * fteMo,
+      upfront:0, capex:0, power:0, people: cloudOpsMo,
       usage: tokens(v("azIn"), v("azOut"), v("azCache")), drag:0,
       capTps: v("azTpm") * 1000 / 60, scaling:"Bounded by your deployment quota per region. Add regions to add headroom." },
 
     { id:"anthropic", name:"Anthropic API", group:"Direct from the lab",
       note:"Claude, billed per token, nothing in between. Cache rate is the lever — every point of it comes straight off the bill.",
-      capex:0, power:0, people:0,
+      upfront:0, capex:0, power:0, people:0,
       usage: tokens(v("anIn"), v("anOut"), v("anCache")), drag:0,
       capTps: v("anTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
 
     { id:"openai", name:"OpenAI API", group:"Direct from the lab",
       note:"GPT, billed per token, nothing in between. Cheaper per token at list; judge it on tokens burned per finished task.",
-      capex:0, power:0, people:0,
+      upfront:0, capex:0, power:0, people:0,
       usage: tokens(v("oaIn"), v("oaOut"), v("oaCache")), drag:0,
       capTps: v("oaTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
 
     { id:"seats", name:"Flat per-seat plans", group:"Direct from the lab",
       note:"One price per developer per month. Heavy users hit limits; in exchange the bill stops surprising you.",
-      capex:0, power:0, people:0, usage: devs * v("seat"), drag:0,
+      upfront:0, capex:0, power:0, people:0, usage: devs * v("seat"), drag:0,
       capTps: devs * v("seatTpm") / 60, unitTps: v("seatTpm") / 60, perDevScale: true, scaling:"Scales one seat at a time, but each seat has its own cap — heavy agents hit it." }
   ];
 
@@ -763,6 +933,13 @@ function compute(){
     r.perDev = devs > 0 ? r.total / devs : 0;
     r.perMOut = outTok > 0 ? r.total / (outTok/1e6) : 0;
     r.life = r.total * horizon;
+    r.upfront = r.upfront || 0;
+    /* Accounting view spreads capital over the write-off period. Cash view is
+       what leaves the bank: the cheque on day one, then the monthly run rate. */
+    r.monthlyCash = r.power + r.people + r.usage + r.drag;
+    r.cashAt = function(m){ return r.upfront + r.monthlyCash * m; };
+    r.yearOne = r.upfront + r.monthlyCash * Math.min(12, horizon);
+    r.lifeCash = r.upfront + r.monthlyCash * horizon;
     if(r.perDevScale){
       /* One laptop, or one seat, per developer. Capacity grows with the team;
          the real question is whether a single unit keeps up with one session. */
@@ -790,7 +967,8 @@ function compute(){
   var qualityPct = codingSpendMo > 0 ? qualityBudget / codingSpendMo * 100 : 0;
 
   rows.sort(function(a,b){ return a.total - b.total; });
-  return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps,
+  return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps, bom:BOM,
+           amort:amort, labour:labourOn(),
            qualityBudget:qualityBudget, qualityPct:qualityPct, dragSet:v("drag"),
            sessTps:sessTps, liveSessions:liveSessions, demandTps:demandTps, lapTps:lapTps };
 }
@@ -811,7 +989,10 @@ function render(){
   var max = worst.total || 1;
 
   document.getElementById("kpis").innerHTML =
-      kpi("win",  "Cheapest route",           best.name,  money(best.total) + " a month")
+      kpi(best.headroom < 1 ? "lose" : "win", "Cheapest route", best.name,
+          best.headroom < 1
+            ? money(best.total) + " a month \u2014 but it throttles at " + best.headroom.toFixed(1) + "x"
+            : money(best.total) + " a month")
     + kpi("",     d.horizon + "-month bill",  money(best.life), "for " + d.devs + " developer" + (d.devs === 1 ? "" : "s"))
     + kpi("lose", "Priciest route",           worst.name, money(worst.total) + " a month")
     + kpi("",     "Spread",                   money((worst.total - best.total) * d.horizon), "saved by picking first over last")
@@ -819,7 +1000,9 @@ function render(){
           (d.qualityPct > 0 ? d.qualityPct.toFixed(1) : "0") + "%",
           d.qualityPct <= 0
             ? "self-hosting costs more even at equal quality"
-            : "developer time the self-hosted saving buys \u2014 you set the penalty at " + d.dragSet + "%");
+            : "developer time the self-hosted saving buys \u2014 you set the penalty at " + d.dragSet + "%")
+    + kpi("", "Year-one cash", money(best.yearOne),
+          best.upfront > 0 ? exact(best.upfront) + " of it up front" : "no capital outlay");
 
   /* sizing strip */
   document.getElementById("sz-summary").textContent =
@@ -906,11 +1089,267 @@ function render(){
       + '<p class="note">' + r.note + ' <b style="color:var(--ink-2)">Scale:</b> ' + r.scaling + '</p></article>';
   }).join("");
 
+  renderCash(d); renderBom(d); renderSens(d); renderBeyond(d);
+
   document.getElementById("foot").innerHTML =
     "<b>This is a model, not a quote.</b> Every rate, card price and model spec is a default typed in from public figures. They move — open the panels and replace them with your own. "
     + "Memory sizing is weights plus KV cache plus 15%; throughput assumes decode is memory-bandwidth bound, which is the right first-order answer for a batched server and wrong at the edges. "
     + "The three own-hardware routes carry a developer-time penalty, because the open-weight model you can host is not the frontier model you rent. Set that penalty to 0 and watch the ranking flip — that single field decides the whole argument. "
     + "Not counted: procurement lead time, security review, fine-tuning, model upgrades, or the cost of shipping a year behind.";
+}
+
+
+/* ═══ cash, break-even, BOM, sensitivity, non-cost factors ════════════════ */
+var OWN = {laptop:1, buy:1, rent:1};
+function byId(d, id){ for(var i=0;i<d.rows.length;i++) if(d.rows[i].id === id) return d.rows[i]; return null; }
+function cheapestHosted(d){
+  var best = null;
+  d.rows.forEach(function(r){ if(!OWN[r.id] && (!best || r.lifeCash < best.lifeCash)) best = r; });
+  return best;
+}
+
+/* Where two straight cumulative lines meet, in months. */
+function crossMonth(own, hosted){
+  var den = own.monthlyCash - hosted.monthlyCash;
+  if(Math.abs(den) < 1e-9) return null;
+  var m = (hosted.upfront - own.upfront) / den;
+  return m > 0 ? m : null;
+}
+
+function renderCash(d){
+  var host = document.getElementById("cashchart");
+  var W = Math.max(280, Math.round(host.clientWidth)), H = 290;
+  var padL = 58, padR = W > 620 ? 132 : 14, padT = 12, padB = 32;
+  var hosted = cheapestHosted(d), buy = byId(d, "buy"), rent = byId(d, "rent");
+  var series = [
+    {r:buy,    name:"GPUs you buy",  c:"var(--s1)"},
+    {r:rent,   name:"GPUs you rent", c:"var(--s3)"},
+    {r:hosted, name:hosted.name,     c:"var(--s2)"}
+  ];
+  var maxY = 0;
+  series.forEach(function(x){ maxY = Math.max(maxY, x.r.cashAt(d.horizon)); });
+  maxY = maxY || 1;
+  var X = function(m){ return padL + (m / d.horizon) * (W - padL - padR); };
+  var Y = function(val){ return H - padB - (val / maxY) * (H - padT - padB); };
+
+  var g = "";
+  for(var i = 0; i <= 4; i++){
+    var yv = maxY * i / 4, y = Y(yv);
+    g += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y
+       + '" style="stroke:var(--line-soft)" stroke-width="1"/>'
+       + '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="10.5"'
+       + ' style="fill:var(--muted)" font-family="IBM Plex Mono, monospace">' + money(yv) + '</text>';
+  }
+  var stepM = d.horizon > 24 ? 6 : d.horizon > 12 ? 3 : 2;
+  for(var m = 0; m <= d.horizon; m += stepM){
+    g += '<text x="' + X(m) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="10.5"'
+       + ' style="fill:var(--muted)" font-family="IBM Plex Mono, monospace">' + m + '</text>';
+  }
+  g += '<text x="' + padL + '" y="' + (H - 22) + '" font-size="9.5" style="fill:var(--muted)"'
+     + ' letter-spacing="0.06em">MONTH</text>';
+
+  series.forEach(function(x){
+    g += '<line x1="' + X(0) + '" y1="' + Y(x.r.upfront) + '" x2="' + X(d.horizon)
+       + '" y2="' + Y(x.r.cashAt(d.horizon)) + '" style="stroke:' + x.c
+       + '" stroke-width="2" stroke-linecap="round" fill="none"/>';
+    if(x.r.upfront > 0)
+      g += '<circle cx="' + X(0) + '" cy="' + Y(x.r.upfront) + '" r="3.5" style="fill:' + x.c + '"/>';
+  });
+
+  /* Mark where owning catches renting-by-the-token. */
+  [buy, rent].forEach(function(r){
+    var m = crossMonth(r, hosted);
+    if(m === null || m > d.horizon) return;
+    var cy = Y(r.cashAt(m));
+    g += '<circle cx="' + X(m) + '" cy="' + cy + '" r="5" style="fill:var(--surface);stroke:var(--ink)" stroke-width="2"/>'
+       + '<text x="' + X(m) + '" y="' + (cy - 11) + '" text-anchor="middle" font-size="10.5" font-weight="600"'
+       + ' style="fill:var(--ink)" font-family="IBM Plex Mono, monospace">m' + Math.round(m) + '</text>';
+  });
+
+  if(padR > 20){
+    series.slice().sort(function(a,b){ return a.r.cashAt(d.horizon) - b.r.cashAt(d.horizon); })
+      .forEach(function(x, i, arr){
+        var y = Y(x.r.cashAt(d.horizon));
+        for(var j = 0; j < i; j++){
+          var oy = Y(arr[j].r.cashAt(d.horizon));
+          if(Math.abs(y - oy) < 26) y = oy + 26;
+        }
+        g += '<text x="' + (W - padR + 8) + '" y="' + (y - 1) + '" font-size="11" font-weight="600"'
+           + ' style="fill:' + x.c + '">' + x.name + '</text>'
+           + '<text x="' + (W - padR + 8) + '" y="' + (y + 12) + '" font-size="10.5"'
+           + ' style="fill:var(--muted)" font-family="IBM Plex Mono, monospace">'
+           + money(x.r.cashAt(d.horizon)) + '</text>';
+      });
+  }
+  host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H
+    + '" role="img" aria-label="Cumulative cash by month">' + g + '</svg>';
+
+  /* break-even readouts */
+  var cx = "";
+  [[buy, "Buying catches the API"], [rent, "Renting catches the API"]].forEach(function(pair){
+    var r = pair[0], m = crossMonth(r, hosted);
+    var never = (m === null);
+    var late  = (m !== null && m > d.horizon);
+    cx += '<div class="cx ' + (never || late ? "no" : "yes") + '">'
+      + '<div class="k">' + pair[1] + '</div>'
+      + '<div class="v">' + (never ? "Never" : "Month " + Math.round(m)) + '</div>'
+      + '<div class="n">' + (never
+          ? "it costs more to run as well as to buy"
+          : late ? "past your " + d.horizon + "-month horizon" : "against " + hosted.name)
+      + '</div></div>';
+  });
+  var beNow = breakEvenDevs(d.dragSet), beEqual = breakEvenDevs(0);
+  cx += '<div class="cx ' + (beNow ? "yes" : "no") + '"><div class="k">Owning wins above</div>'
+     + '<div class="v">' + (beNow ? beNow + " devs" : "No team size") + '</div>'
+     + '<div class="n">at your ' + d.dragSet + '% quality penalty</div></div>'
+     + '<div class="cx ' + (beEqual ? "yes" : "no") + '"><div class="k">At equal quality, above</div>'
+     + '<div class="v">' + (beEqual ? beEqual + " devs" : "No team size") + '</div>'
+     + '<div class="n">penalty set to 0% — the pure infrastructure case</div></div>';
+  document.getElementById("crossings").innerHTML = cx;
+}
+
+/* Smallest team at which owning beats renting tokens, over the full horizon. */
+function breakEvenDevs(dragPct){
+  for(var n = 5; n <= 2000; n += (n < 100 ? 5 : 25)){
+    var o = withOv({devs:n, drag:dragPct}, compute);
+    var own = Math.min(byId(o, "buy").lifeCash, byId(o, "rent").lifeCash);
+    if(own < cheapestHosted(o).lifeCash) return n;
+  }
+  return null;
+}
+
+function renderBom(d){
+  var b = d.bom, buy = byId(d, "buy"), L = d.labour;
+  var line = function(name, qty, ext, cls){
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + name + '</td>'
+      + '<td class="q mono">' + (qty || "") + '</td>'
+      + '<td class="mono">' + exact(ext) + '</td></tr>';
+  };
+  var grp = function(t){ return '<tr class="grp"><td colspan="3">' + t + '</td></tr>'; };
+  var h = grp("Capital — one time")
+    + line("Accelerators", d.s.gpus + " x " + exact(v("gpuBuy")), b.cards)
+    + line("Spare cards", v("spares") + "% of fleet", b.sparesCost)
+    + line("GPU host chassis, CPU, RAM, PSU", b.hosts + " x " + exact(v("hostCost")), b.chassis)
+    + line("Fabric, optics &amp; cabling", b.hosts + " x " + exact(v("netFabric")), b.fabric)
+    + line("Rack, PDU &amp; smart hands", b.hosts + " x " + exact(v("installHost")), b.install)
+    + line("Hardware subtotal", "", b.hwCapex, "sub");
+
+  h += grp("Labour — one time" + (L ? "" : " (excluded)"));
+  var lab = [["Architecture &amp; procurement", v("setupArch")],
+             ["Rack, cable &amp; bring-up", b.hosts * v("setupRack")],
+             ["Serving stack &amp; cluster", v("setupStack")],
+             ["Model evaluation &amp; benchmarking", v("setupEval")],
+             ["Security &amp; compliance review", v("setupSec")]];
+  lab.forEach(function(x){
+    h += line(x[0], Math.round(x[1]) + " h", L ? x[1] * b.eng : 0, L ? "" : "off");
+  });
+  h += line("Labour subtotal", Math.round(b.setupHours) + " h at " + exact(b.eng) + "/h",
+            b.setupLabour, "sub");
+  h += '<tr class="tot"><td>Up-front cheque</td><td></td><td class="mono">' + exact(buy.upfront) + '</td></tr>';
+
+  h += grp("Recurring — every month")
+    + line("Rack space &amp; cooling", Math.round(b.fleetKw) + " kW at " + exact(v("coloKw")) + "/kW",
+           b.fleetKw * v("coloKw"))
+    + line("Electricity", "PUE " + v("pue") + " at $" + v("kwhDc") + "/kWh",
+           b.fleetKw * v("pue") * 730 * v("kwhDc"))
+    + line("Model &amp; checkpoint storage", Math.round(d.s.storageGb) + " GB", b.storMo)
+    + line("Hardware support", v("warranty") + "%/yr of capex", b.warrantyMo)
+    + line("Platform engineering" + (L ? "" : " (excluded)"), v("adminFte") + " FTE", b.adminMo, L ? "" : "off")
+    + line("Setup labour, written down", "over " + d.amort + " mo", b.setupLabour / d.amort, L ? "" : "off")
+    + line("Developer time lost", v("drag") + "% penalty", buy.drag)
+    + '<tr class="tot"><td>Monthly run rate</td><td></td><td class="mono">' + exact(buy.monthlyCash) + '</td></tr>';
+
+  document.getElementById("bombody").innerHTML = h;
+  document.getElementById("bomtitle").textContent =
+    d.s.gpus + " x " + d.s.g.label + " · " + d.s.m.label + " · " + d.s.q.label;
+  document.getElementById("bomfoot").innerHTML =
+    "<b style=\"color:var(--ink-2)\">" + exact(buy.lifeCash) + "</b> of cash over " + d.horizon
+    + " months, or <b style=\"color:var(--ink-2)\">" + money(d.devs > 0 ? buy.lifeCash / d.devs / d.horizon : 0)
+    + "</b> per developer per month. "
+    + (L ? "Labour is counted. Turn it off to model a team that already exists and absorbs the work — "
+         + "published figures put ongoing upkeep at 10–20 engineering hours a month even for a small deployment."
+         : "Labour is excluded, so this assumes setup and upkeep come free from an existing team. "
+         + "That is the assumption most self-hosting business cases get wrong.")
+    + " Not in this list: procurement lead time, power upgrades to the room, or the second cluster you buy when the first fills up.";
+}
+
+function renderSens(d){
+  /* The metric is the decision margin: cheapest hosted minus cheapest own
+     hardware, per month. Positive means renting tokens wins. Measuring one
+     route's bill instead reports "no effect" for every knob that route does
+     not touch, which is true and useless. */
+  function margin(o){
+    var own = Infinity, host = Infinity;
+    o.rows.forEach(function(r){
+      /* Laptops are excluded: one model per developer is a different animal
+         from standing up a shared server, and this section is about whether
+         to stand one up. */
+      if(r.id === "buy" || r.id === "rent") own = Math.min(own, r.total);
+      else if(!OWN[r.id])                   host = Math.min(host, r.total);
+    });
+    return host - own;
+  }
+  var base = margin(d);
+  var knobs = [
+    ["drag","Open-model penalty"], ["outTok","Output tokens / dev"], ["inTok","Input tokens / dev"],
+    ["cacheShare","Cache hit rate"], ["devs","Team size"], ["gpuBuy","Card price"],
+    ["devRate","Loaded developer cost"], ["fteCost","Platform engineer cost"],
+    ["seat","Seat price"], ["batch","Requests per replica"]
+  ];
+  var rows = knobs.map(function(k){
+    var cur = v(k[0]), o = {};
+    var lo = cur * 0.7, hi = cur * 1.3;
+    if(k[0] === "cacheShare") hi = Math.min(100, hi);
+    if(k[0] === "drag" && cur === 0){ lo = 0; hi = 5; }          /* a zero knob still has a direction */
+    o[k[0]] = lo; var a = margin(withOv(o, compute));
+    o = {}; o[k[0]] = hi; var b = margin(withOv(o, compute));
+    return {name:k[1], lo:Math.min(a,b), hi:Math.max(a,b), span:Math.abs(b - a)};
+  }).sort(function(x,y){ return y.span - x.span; });
+
+  var widest = rows[0].span || 1;
+  document.getElementById("sensrows").innerHTML = rows.map(function(r){
+    var half = 50 / widest;
+    var l = 50 + (r.lo - base) * half, w = (r.hi - r.lo) * half;
+    var flips = (r.lo < 0) !== (r.hi < 0);                        /* the swing changes the winner */
+    return '<div class="srow"><div class="sn">' + r.name + '</div>'
+      + '<div class="strack"><div class="mid"></div><i style="left:' + Math.max(0, Math.min(99, l))
+      + '%;width:' + Math.max(1.5, Math.min(100, w)) + '%;background:'
+      + (flips ? "var(--s2)" : "var(--s1)") + '"></i></div>'
+      + '<div class="sv mono">' + (r.span > 0 ? (flips ? "flips" : "\u00b1" + money(r.span / 2)) : "no effect")
+      + '</div></div>';
+  }).join("");
+
+  document.getElementById("sensfoot").innerHTML =
+    "The bar is the gap between the cheapest hosted route and the cheaper of buying or renting GPUs, per month. "
+    + "Today that gap is <b style=\"color:var(--ink-2)\">" + money(Math.abs(base)) + " in favour of "
+    + (base > 0 ? "standing up your own serving" : "renting tokens") + "</b>. The centre line is where it sits now; "
+    + "each bar is what a 30% swing in that one assumption does to it. "
+    + "Bars marked <b style=\"color:var(--s2)\">flips</b> cross zero \u2014 those assumptions change the answer, "
+    + "not just the size of the bill, and they are the ones to pin down before anyone signs. "
+    + "A knob reading <b style=\"color:var(--ink-2)\">no effect</b> is telling you something real: the fleet is "
+    + "already at its minimum size, so that assumption cannot move it. Self-hosted cost is a step function \u2014 "
+    + "you buy a whole node whether you fill it or not, and nothing changes until you need the next one.";
+}
+
+var BEYOND = {
+  laptop:    ["Never leaves the laptop", "Days", "Sell the laptops", ["g","No"]],
+  buy:       ["Never leaves your racks", "3–6 months, mostly procurement", "You own depreciating silicon", ["r","Yes, platform team"]],
+  rent:      ["Your tenancy, provider's building", "Days to weeks", "Stop the instances", ["a","Part of one"]],
+  bedrock:   ["Your AWS account, not the model vendor's", "Days", "Swap the endpoint", ["a","Part of one"]],
+  azure:     ["Your Azure tenant", "Days", "Swap the endpoint", ["a","Part of one"]],
+  anthropic: ["Vendor's API under their terms", "Hours", "Swap the endpoint", ["g","No"]],
+  openai:    ["Vendor's API under their terms", "Hours", "Swap the endpoint", ["g","No"]],
+  seats:     ["Vendor's service under their terms", "Hours", "Cancel the seats", ["g","No"]]
+};
+function renderBeyond(d){
+  document.getElementById("beyondbody").innerHTML = d.rows.map(function(r){
+    var b = BEYOND[r.id]; if(!b) return "";
+    return '<tr><td>' + r.name + '</td>'
+      + '<td data-label="Where your code goes">' + b[0] + '</td>'
+      + '<td data-label="Time to stand up">' + b[1] + '</td>'
+      + '<td data-label="If you change your mind">' + b[2] + '</td>'
+      + '<td data-label="Needs a hire"><span class="chip ' + b[3][0] + '">' + b[3][1] + '</span></td></tr>';
+  }).join("");
 }
 
 function kpi(cls, k, val, note){
@@ -924,6 +1363,9 @@ function sz(val, k, n){
 document.addEventListener("input", function(e){
   if(e.target.tagName === "INPUT") render();
 });
+document.getElementById("labour").addEventListener("change", render);
+var rt;
+window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(render, 150); });
 document.getElementById("gpu").addEventListener("change", function(){
   var g = pick(GPUS, "gpu");
   document.getElementById("gpuBuy").value  = g.buy;
