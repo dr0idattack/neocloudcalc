@@ -121,7 +121,12 @@ This tool makes an argument about money. Three rules protect it:
    against measured vLLM numbers, which quietly flattered self-hosting. If you
    change either, re-check them against published benchmarks and record it in
    `SOURCES.md`.
-6. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
+6. **Export stays in sync with the model.** A new input, route or cost component
+   must appear in the CSV and in the printed appendix. An export that silently
+   omits an assumption is worse than no export — someone will act on it.
+7. **Copy stays the primary export.** Downloads a page starts itself are inert
+   inside embedded viewers. Do not promote the download button.
+8. **Keep the omissions list current.** `ARCHITECTURE.md` §7 lists what is not
    modelled. If you add a simplification, add it there.
 
 ## Before you push
@@ -141,6 +146,9 @@ There are no tests. Open `index.html` in a browser and check:
 - Simple and Advanced both render, and switching between them keeps the numbers
   in step.
 - The labour switch changes the totals, not just the bill of materials.
+- Print preview is clean: no rail, no top bar, no export panel, the appendix
+  present, and the cash chart sized to the page.
+- The CSV opens in a spreadsheet and every number is a number.
 - Dragging a slider stays smooth. Each render runs roughly 200 extra `compute()`
   calls for the break-even scan and sensitivity pass; if you add more, check it.
 - No `NaN`, no `Infinity`, no `$0` where a figure belongs. Setting Developers to
