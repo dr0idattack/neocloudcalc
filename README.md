@@ -1,7 +1,7 @@
 # neocloudcalc
 
 **What a coding model really costs.** A single-page calculator that compares the
-three-year total cost of ownership of an AI coding assistant across eight ways to
+three-year total cost of ownership of an AI coding assistant across nine ways to
 run one — and tells you how many developers each one can actually carry.
 
 Open `index.html` in a browser. That is the whole app. No build step, no install,
@@ -16,7 +16,7 @@ all. Not just a price per token.
 
 This puts all of it on one scale.
 
-## The eight routes
+## The nine routes
 
 | Route | Group | Cost is mostly |
 | --- | --- | --- |
@@ -147,7 +147,7 @@ band.
 
 ## Getting it out of the browser
 
-**Print or save as PDF** gives a clean document: the verdict, all eight routes,
+**Print or save as PDF** gives a clean document: the verdict, all nine routes,
 the bill of materials, and every assumption listed at the end so nobody has to
 ask what you plugged in.
 
