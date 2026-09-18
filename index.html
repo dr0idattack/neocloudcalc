@@ -1192,7 +1192,7 @@ function render(){
     + "the bill of materials, and every assumption listed at the end so nobody has to ask what you plugged in. "
     + "<b style=\"color:var(--ink-2)\">CSV</b> carries the same thing as numbers a spreadsheet can work with \u2014 "
     + "assumptions, sizing, the route comparison with its five cost components, and the bill of materials line by line. "
-    + "Copy always works; the download is blocked in some embedded viewers, so use Copy if nothing lands in your downloads.";
+    + "Download asks you to confirm, then writes the file. Copy is there for anywhere that will not let a page save one.";
 
   document.getElementById("foot").innerHTML =
     "<b>This is a model, not a quote.</b> Every rate, card price and model spec is a default typed in from public figures. They move — open the panels and replace them with your own. "
@@ -1611,16 +1611,35 @@ document.getElementById("ex-copy").addEventListener("click", function(){
   copyText(buildCsv(compute()), this);
 });
 document.getElementById("ex-dl").addEventListener("click", function(){
-  var btn = this;
-  try{
-    var blob = new Blob(["﻿" + buildCsv(compute())], {type:"text/csv;charset=utf-8"});
-    var url = URL.createObjectURL(blob), a = document.createElement("a");
-    a.href = url;
-    a.download = "coding-model-tco-" + new Date().toISOString().slice(0, 10) + ".csv";
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
-    flash(btn, "Saved");
-  } catch(e){ flash(btn, "Blocked — use Copy"); }
+  var btn = this, name = "coding-model-tco-" + new Date().toISOString().slice(0, 10) + ".csv";
+  var csv = "\ufeff" + buildCsv(compute());                  /* BOM so Excel reads it as UTF-8 */
+
+  /* Embedded viewers block a download the page starts itself, but grant one
+     through the downloads capability. Served as an ordinary page that
+     capability is absent and the blob path works. Try the first, fall back. */
+  function blobSave(){
+    try{
+      var url = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+      var a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      flash(btn, "Saved");
+    } catch(e){ flash(btn, "Blocked \u2014 use Copy"); }
+  }
+  var pending = (window.claude && window.claude.use) ? window.claude.use("downloads") : null;
+  if(!pending || typeof pending.then !== "function"){ blobSave(); return; }
+  pending.then(function(dl){
+    if(!dl){ blobSave(); return; }
+    dl.save({filename:name, data:csv}).then(
+      function(){ flash(btn, "Saved"); },
+      function(err){
+        var code = err && err.code;
+        flash(btn, code === "declined"     ? "Cancelled"
+                 : code === "rate_limited" ? "Try again"
+                 :                           "Couldn\u2019t save \u2014 use Copy");
+      });
+  }, blobSave);
 });
 
 function kpi(cls, k, val, note){

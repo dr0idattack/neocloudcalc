@@ -119,8 +119,8 @@ ask what you plugged in.
 
 **CSV** carries the same thing as numbers a spreadsheet can work with —
 assumptions, sizing, the route comparison with its five cost components, and the
-bill of materials line by line. Copy always works. The download is blocked inside
-some embedded viewers, so use Copy if nothing lands in your downloads folder.
+bill of materials line by line. Download asks you to confirm and writes the file;
+Copy is there for anywhere that will not let a page save one.
 
 ## Deploying it
 
