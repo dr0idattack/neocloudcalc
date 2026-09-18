@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # Runs on every pull request. Catches a syntax error in the inline script
+  # and a control id the model reads but nothing defines — the two ways this
+  # file has actually broken. It does not open the page; see AGENTS.md for
+  # what still needs a human.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/check.mjs
+
+  # Deploys only from the default branch. An earlier version ran on every
+  # feature-branch push, which meant each commit on a pull request tried to
+  # publish to the live site — and failed, because Pages was not yet enabled.
+  # A pull request should not deploy to production.
+  deploy:
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The site is a single static file with no build step, so the repo root
+      # is the artifact. .nojekyll stops Pages running Jekyll over it.
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp README.md ARCHITECTURE.md SOURCES.md AGENTS.md _site/ 2>/dev/null || true
+          touch _site/.nojekyll
+
+      # enablement turns Pages on if it is off, so the first deploy does not
+      # need anyone to visit the settings page first.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
