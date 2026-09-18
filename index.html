@@ -1277,12 +1277,15 @@ function compute(){
                        + hHwCapex * (v("warranty")/100) / 12;
   var hybridRentMo = hs.gpus * v("gpuRent") * 730 * (v("rentUtil")/100);
   var hybridFleetTps = hs.replicas * hs.replicaTps;
-  var hybridBuyTotal  = hybridFleetCapex + hybridFleetPower + setupLabour / amort;
+  var hSetupHours = v("setupArch") + hHosts * v("setupRack") + v("setupStack")
+                  + v("setupEval") + v("setupSec");
+  var hSetupLabour = labourOn() ? hSetupHours * eng : 0;
+  var hybridBuyTotal  = hybridFleetCapex + hybridFleetPower + hSetupLabour / amort;
   var hybridRentTotal = hybridRentMo + hStorMo + rentSetup / amort;
   /* The hybrid's day-one cheque is for ITS fleet, not the standalone one.
      buyUpfront covers s.gpus cards; the hybrid only ever buys hs.gpus, which
      is smaller whenever the open tier carries less than the whole workload. */
-  var hBuyUpfront     = hHwCapex + setupLabour;
+  var hBuyUpfront     = hHwCapex + hSetupLabour;
   var hybridBuy = hybridBuyTotal <= hybridRentTotal;
 
   var rows = [
@@ -1356,7 +1359,7 @@ function compute(){
       upfront: hybridBuy ? hBuyUpfront : rentSetup,
       capex: hybridBuy ? hybridFleetCapex : 0,
       power: hybridBuy ? hybridFleetPower : storMo,
-      people: platformMo + adminMo + (hybridBuy ? setupLabour : rentSetup) / amort,
+      people: platformMo + adminMo + (hybridBuy ? hSetupLabour : rentSetup) / amort,
       usage: (hybridBuy ? 0 : hybridRentMo)
            + tokens(v("anIn"), v("anOut"), v("anCache"), EFF.hybrid.apiTokenMult),
       drag: dragFor(EFF.hybrid), eff: EFF.hybrid,
