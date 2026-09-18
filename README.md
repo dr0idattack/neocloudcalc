@@ -111,6 +111,17 @@ Anthropic's reported $150–250, and the self-hosting break-even lands at ~67
 developers and ~$160K/year of API spend, inside the published $50K–500K hybrid
 band.
 
+## Getting it out of the browser
+
+**Print or save as PDF** gives a clean document: the verdict, all eight routes,
+the bill of materials, and every assumption listed at the end so nobody has to
+ask what you plugged in.
+
+**CSV** carries the same thing as numbers a spreadsheet can work with —
+assumptions, sizing, the route comparison with its five cost components, and the
+bill of materials line by line. Copy always works. The download is blocked inside
+some embedded viewers, so use Copy if nothing lands in your downloads folder.
+
 ## Deploying it
 
 `.github/workflows/pages.yml` publishes the site to GitHub Pages on every push.

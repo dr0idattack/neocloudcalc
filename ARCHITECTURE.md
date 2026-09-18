@@ -387,7 +387,37 @@ Usage tiers, anchored on Anthropic's reported ~$13 per developer per active day:
 
 **Advanced** reveals all six panels plus the team-size presets.
 
-## 8. Responsive behaviour
+## 8. Export
+
+Two paths out, because the two audiences want different things.
+
+**Print / PDF** is a `@media print` stylesheet, not a separate document. It
+forces the light palette regardless of the on-screen theme, sets
+`print-color-adjust: exact` so charts and status chips survive, hides the rail,
+top bar and export panel, and replaces the route cards — which waste paper — with
+a print-only comparison table. Two blocks are print-only (`.printonly`): a header
+carrying the date and the full run line, and an appendix listing every assumption
+in three columns, so nobody receiving the document has to ask what was plugged in.
+The bill of materials and the appendix each start on a fresh page. Roughly seven
+pages at default settings.
+
+The cumulative chart is drawn at measured pixel width, so `beforeprint` and
+`afterprint` both re-render it at the new page width.
+
+**CSV** is built by `buildCsv()` into four labelled blocks — assumptions, sizing,
+the route comparison with all five cost components broken out, and the bill of
+materials line by line — separated by blank lines, which spreadsheets read as
+sections. Values are raw numbers with no currency symbols or thousands
+separators, so they compute on arrival. The run line is the second row, so a
+spreadsheet sitting in someone's inbox still says what produced it.
+
+Copy is the primary action and download is secondary, because **embedded viewers
+block downloads a page starts itself** — `<a download>` with a blob href is inert
+inside the artifact sandbox. Copy falls back from the async Clipboard API to a
+hidden textarea and `execCommand`, and tells the user to press Ctrl+C if both
+fail. Both buttons flash their result rather than firing a dialog.
+
+## 9. Responsive behaviour
 
 Three layouts, with breakpoints deliberately set *off* the common device widths
 (1099px and 679px rather than 1024 and 640). Chrome evaluates media queries
@@ -406,7 +436,7 @@ Verified with a scripted pass measuring `scrollWidth` and every element's right
 edge at 500 / 640 / 700 / 768 / 834 / 900 / 1024 / 1100 / 1280 / 1440. No
 horizontal page scroll at any width.
 
-## 9. Design system
+## 10. Design system
 
 ### Colour
 
@@ -458,7 +488,7 @@ reads as empty rather than as a grey block.
 
 ---
 
-## 10. Deliberate omissions
+## 11. Deliberate omissions
 
 Not modelled, and worth saying out loud:
 

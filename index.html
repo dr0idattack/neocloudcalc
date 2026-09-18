@@ -280,6 +280,20 @@ button,select,input{font-family:inherit}
 .chip.a{background:var(--warn-soft);color:var(--warn)}
 .chip.r{background:var(--bad-soft);color:var(--bad)}
 
+/* ── export ─────────────────────────────────────────────────────────────── */
+.export{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:14px 16px}
+.exbtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.exbtn{
+  display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;
+  border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);
+  padding:9px 13px;cursor:pointer;
+}
+.exbtn:hover{background:var(--surface-2);border-color:var(--muted)}
+.exbtn.primary{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.exbtn.done{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.exnote{font-size:11.5px;color:var(--muted);line-height:1.55;margin:0}
+.printonly{display:none}
+
 /* ── section heads ──────────────────────────────────────────────────────── */
 .sechead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between;margin-bottom:10px}
 .sechead h2{margin:0;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
@@ -425,6 +439,57 @@ footer b{color:var(--ink-2)}
   .szgrid{grid-template-columns:minmax(0,1fr)}
   .subs{gap:3px 12px}
 }
+
+/* ═══ print ════════════════════════════════════════════════════════════════
+   Paper is always light, whatever theme the screen is in. Charts and chips
+   keep their fills so the document still reads as the tool did. */
+@media print{
+  :root, :root[data-theme="dark"], :root[data-theme="light"]{
+    color-scheme: light;
+    --ground:#ffffff; --surface:#ffffff; --surface-2:#f7f8fa; --surface-3:#eef1f5;
+    --line:#c3ccd6; --line-soft:#dde3ea;
+    --ink:#0b1220; --ink-2:#333d4b; --muted:#5d6876;
+    --accent:#0f4f9e; --accent-soft:#eef4fc;
+    --good:#0a5c39; --good-soft:#e6f2ec; --bad:#8f3124; --bad-soft:#fbeae6;
+    --warn:#7a4e05; --warn-soft:#fbf2df;
+    --shadow:none;
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+  }
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  @page{margin:13mm 12mm}
+  html,body{background:#fff}
+  body{font-size:10.5pt}
+
+  .topbar,.rail,.export,#tip,.themebtn,.icobtn,.seg{display:none !important}
+  .layout{display:block;max-width:none;padding:0}
+  .results{gap:14px}
+  .panel,.cash,.bom,.sens,.beyondwrap,.chart,.sizing,.cap,.kpis{box-shadow:none}
+
+  .printonly{display:block}
+  .noprint{display:none !important}
+
+  /* cards waste paper; the print-only table says the same thing in a third of it */
+  .cards{display:none !important}
+
+  section,.card,.bom,.cash,.sizing,.cap,.sens,.beyondwrap,.kpis{break-inside:avoid}
+  .bomtbl tr,.captbl tr,.beyond tr,.ptbl tr,.srow,.row{break-inside:avoid}
+  .sechead h2{color:#000}
+
+  .phead{border-bottom:2px solid var(--ink);padding-bottom:9px;margin-bottom:14px}
+  .phead h1{margin:0;font-size:17pt;letter-spacing:-0.02em}
+  .phead .sub{font-size:9.5pt;color:var(--muted);margin-top:4px}
+  .phead .run{font-size:9pt;color:var(--ink-2);margin-top:7px;line-height:1.5}
+  .ptbl{width:100%;border-collapse:collapse;font-size:9.5pt}
+  .ptbl th{text-align:right;font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    padding:6px 7px;border-bottom:1px solid var(--ink);white-space:nowrap}
+  .ptbl th:first-child{text-align:left}
+  .ptbl td{text-align:right;padding:5px 7px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+  .ptbl td:first-child{text-align:left;font-weight:600}
+  .ptbl tr.win td{background:var(--good-soft)}
+  .pfoot{font-size:8.5pt;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:8px}
+  .pbreak{break-before:page}
+  .printonly.pbreak{display:block}
+}
 </style>
 </head>
 <body>
@@ -488,6 +553,12 @@ footer b{color:var(--ink-2)}
   </aside>
 
   <div class="results">
+    <div class="phead printonly">
+      <h1>Coding assistant &mdash; three-year cost of ownership</h1>
+      <div class="sub" id="p-sub"></div>
+      <div class="run" id="p-run"></div>
+    </div>
+
     <div class="kpis" id="kpis"></div>
 
     <section>
@@ -529,7 +600,15 @@ footer b{color:var(--ink-2)}
       </div>
     </section>
 
-    <section>
+    <section class="printonly">
+      <div class="sechead"><h2>All eight routes</h2></div>
+      <table class="ptbl"><thead><tr>
+        <th>Route</th><th>Monthly</th><th>Up front</th><th>Full term</th>
+        <th>Per dev / mo</th><th>Sessions</th><th>Headroom</th>
+      </tr></thead><tbody id="p-routes"></tbody></table>
+    </section>
+
+    <section class="pbreak">
       <div class="sechead"><h2>Bill of materials</h2><p>If you are set on owning the iron, this is the list.</p></div>
       <div class="bom">
         <div class="bomhead">
@@ -561,6 +640,23 @@ footer b{color:var(--ink-2)}
     <section>
       <div class="sechead"><h2>The eight routes</h2><p>Cheapest first.</p></div>
       <div class="cards" id="cards"></div>
+    </section>
+
+    <section class="noprint">
+      <div class="sechead"><h2>Take it away</h2><p>The assumptions travel with the numbers.</p></div>
+      <div class="export">
+        <div class="exbtns">
+          <button class="exbtn primary" type="button" id="ex-print">Print or save as PDF</button>
+          <button class="exbtn" type="button" id="ex-copy">Copy everything as CSV</button>
+          <button class="exbtn" type="button" id="ex-dl">Download CSV</button>
+        </div>
+        <p class="exnote" id="ex-note"></p>
+      </div>
+    </section>
+
+    <section class="printonly pbreak">
+      <div class="sechead"><h2>Every assumption</h2></div>
+      <table class="ptbl"><tbody id="p-assump"></tbody></table>
     </section>
 
     <footer id="foot"></footer>
@@ -1089,7 +1185,14 @@ function render(){
       + '<p class="note">' + r.note + ' <b style="color:var(--ink-2)">Scale:</b> ' + r.scaling + '</p></article>';
   }).join("");
 
-  renderCash(d); renderBom(d); renderSens(d); renderBeyond(d);
+  renderCash(d); renderBom(d); renderSens(d); renderBeyond(d); renderPrint(d);
+
+  document.getElementById("ex-note").innerHTML =
+    "<b style=\"color:var(--ink-2)\">Print</b> gives a clean document: the verdict, all eight routes, "
+    + "the bill of materials, and every assumption listed at the end so nobody has to ask what you plugged in. "
+    + "<b style=\"color:var(--ink-2)\">CSV</b> carries the same thing as numbers a spreadsheet can work with \u2014 "
+    + "assumptions, sizing, the route comparison with its five cost components, and the bill of materials line by line. "
+    + "Copy always works; the download is blocked in some embedded viewers, so use Copy if nothing lands in your downloads.";
 
   document.getElementById("foot").innerHTML =
     "<b>This is a model, not a quote.</b> Every rate, card price and model spec is a default typed in from public figures. They move — open the panels and replace them with your own. "
@@ -1352,6 +1455,174 @@ function renderBeyond(d){
   }).join("");
 }
 
+
+/* ═══ export: print document and CSV ══════════════════════════════════════
+   Labels carry HTML entities for the screen; strip them for paper and CSV. */
+function plain(t){ return String(t).replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/<[^>]*>/g, ""); }
+function today(){
+  var d = new Date();
+  return d.toLocaleDateString("en-US", {year:"numeric", month:"long", day:"numeric"});
+}
+function runLine(d){
+  return d.devs + " developer" + (d.devs === 1 ? "" : "s") + " · "
+    + v("inTok") + "M in / " + v("outTok") + "k out per developer per day · "
+    + v("cacheShare") + "% cache · " + d.horizon + "-month horizon · "
+    + v("drag") + "% open-model penalty · "
+    + plain(d.s.m.label) + " at " + plain(d.s.q.label) + " on " + plain(d.s.g.label) + " · "
+    + (d.labour ? "labour counted" : "labour excluded");
+}
+
+function renderPrint(d){
+  document.getElementById("p-sub").textContent =
+    "Generated " + today() + " · every figure below is an assumption, not a quote";
+  document.getElementById("p-run").textContent = runLine(d);
+
+  document.getElementById("p-routes").innerHTML = d.rows.map(function(r, i){
+    return '<tr' + (i === 0 ? ' class="win"' : '') + '><td>' + r.name + '</td>'
+      + '<td>' + exact(r.total) + '</td>'
+      + '<td>' + (r.upfront > 0 ? exact(r.upfront) : "—") + '</td>'
+      + '<td>' + exact(r.lifeCash) + '</td>'
+      + '<td>' + exact(r.perDev) + '</td>'
+      + '<td>' + num(r.sessions) + '</td>'
+      + '<td>' + (r.headroom >= 10 ? "10x+" : r.headroom.toFixed(1) + "x") + '</td></tr>';
+  }).join("");
+
+  var rows = [];
+  Object.keys(GROUPS).forEach(function(g){
+    GROUPS[g].forEach(function(f){
+      rows.push([plain(f[1]), document.getElementById(f[0]).value + (f[2] ? " " + plain(f[2]) : "")]);
+    });
+  });
+  var out = "", cols = 3;
+  for(var i = 0; i < rows.length; i += cols){
+    out += "<tr>";
+    for(var j = 0; j < cols; j++){
+      var r = rows[i + j];
+      out += r ? '<td style="text-align:left;font-weight:400">' + r[0]
+               + ' <b style="white-space:nowrap">' + r[1] + '</b></td>'
+               : "<td></td>";
+    }
+    out += "</tr>";
+  }
+  document.getElementById("p-assump").innerHTML = out;
+}
+
+/* ── CSV ───────────────────────────────────────────────────────────────── */
+function q(x){ return '"' + String(x).replace(/"/g, '""') + '"'; }
+function buildCsv(d){
+  var b = d.bom, buy = byId(d, "buy"), L = [];
+  L.push(["Coding Model TCO", today()].map(q).join(","));
+  L.push(q(runLine(d)));
+  L.push("");
+
+  L.push(q("ASSUMPTIONS"));
+  L.push(["field", "value", "unit"].map(q).join(","));
+  Object.keys(GROUPS).forEach(function(g){
+    GROUPS[g].forEach(function(f){
+      L.push([q(plain(f[1])), document.getElementById(f[0]).value, q(plain(f[2] || ""))].join(","));
+    });
+  });
+  L.push([q("Model"), q(plain(d.s.m.label)), ""].join(","));
+  L.push([q("Weight precision"), q(plain(d.s.q.label)), ""].join(","));
+  L.push([q("Accelerator"), q(plain(d.s.g.label)), ""].join(","));
+  L.push([q("Labour counted"), q(d.labour ? "yes" : "no"), ""].join(","));
+  L.push("");
+
+  L.push(q("SIZING"));
+  L.push(["metric", "value", "unit"].map(q).join(","));
+  [["Weights in memory", d.s.weightsGb, "GB"], ["KV cache", d.s.kvGb, "GB"],
+   ["Memory per replica", d.s.vramNeed, "GB"], ["Cards per replica", d.s.gpusPerReplica, "cards"],
+   ["Single stream", d.s.perStream, "tok/s"], ["Replica throughput", d.s.replicaTps, "tok/s"],
+   ["Peak demand", d.peakTps, "tok/s"], ["Replicas", d.s.replicas, "replicas"],
+   ["Cards total", d.s.gpus, "cards"], ["Checkpoint storage", d.s.storageGb, "GB"]
+  ].forEach(function(r){ L.push([q(r[0]), Math.round(r[1] * 100) / 100, q(r[2])].join(",")); });
+  L.push("");
+
+  L.push(q("ROUTE COMPARISON"));
+  L.push(["route", "group", "monthly", "up front", "cash over " + d.horizon + " months",
+          "per dev per month", "per 1M output", "live sessions", "developers", "headroom x",
+          "hardware", "power rack storage", "people", "tokens seats rent", "developer time lost"
+         ].map(q).join(","));
+  d.rows.forEach(function(r){
+    L.push([q(r.name), q(r.group), Math.round(r.total), Math.round(r.upfront), Math.round(r.lifeCash),
+            Math.round(r.perDev), Math.round(r.perMOut * 100) / 100, Math.round(r.sessions),
+            r.devsHeld === null ? q("scales 1:1") : Math.round(r.devsHeld),
+            Math.round(r.headroom * 100) / 100,
+            Math.round(r.capex), Math.round(r.power), Math.round(r.people),
+            Math.round(r.usage), Math.round(r.drag)].join(","));
+  });
+  L.push("");
+
+  L.push(q("BILL OF MATERIALS — " + d.s.gpus + " x " + plain(d.s.g.label)));
+  L.push(["section", "line", "quantity", "amount"].map(q).join(","));
+  var bom = [
+    ["Capital", "Accelerators", d.s.gpus + " x " + Math.round(v("gpuBuy")), b.cards],
+    ["Capital", "Spare cards", v("spares") + "% of fleet", b.sparesCost],
+    ["Capital", "GPU host chassis, CPU, RAM, PSU", b.hosts + " x " + Math.round(v("hostCost")), b.chassis],
+    ["Capital", "Fabric, optics and cabling", b.hosts + " x " + Math.round(v("netFabric")), b.fabric],
+    ["Capital", "Rack, PDU and smart hands", b.hosts + " x " + Math.round(v("installHost")), b.install],
+    ["Capital", "Hardware subtotal", "", b.hwCapex],
+    ["One-time labour", "Architecture and procurement", v("setupArch") + " h", d.labour ? v("setupArch") * b.eng : 0],
+    ["One-time labour", "Rack, cable and bring-up", (b.hosts * v("setupRack")) + " h", d.labour ? b.hosts * v("setupRack") * b.eng : 0],
+    ["One-time labour", "Serving stack and cluster", v("setupStack") + " h", d.labour ? v("setupStack") * b.eng : 0],
+    ["One-time labour", "Model evaluation", v("setupEval") + " h", d.labour ? v("setupEval") * b.eng : 0],
+    ["One-time labour", "Security and compliance review", v("setupSec") + " h", d.labour ? v("setupSec") * b.eng : 0],
+    ["One-time labour", "Labour subtotal", Math.round(b.setupHours) + " h at " + Math.round(b.eng) + "/h", b.setupLabour],
+    ["Total", "Up-front cheque", "", buy.upfront],
+    ["Recurring monthly", "Rack space and cooling", Math.round(b.fleetKw) + " kW", b.fleetKw * v("coloKw")],
+    ["Recurring monthly", "Electricity", "PUE " + v("pue"), b.fleetKw * v("pue") * 730 * v("kwhDc")],
+    ["Recurring monthly", "Model and checkpoint storage", Math.round(d.s.storageGb) + " GB", b.storMo],
+    ["Recurring monthly", "Hardware support", v("warranty") + "%/yr", b.warrantyMo],
+    ["Recurring monthly", "Platform engineering", v("adminFte") + " FTE", b.adminMo],
+    ["Recurring monthly", "Setup labour written down", "over " + d.amort + " mo", b.setupLabour / d.amort],
+    ["Recurring monthly", "Developer time lost", v("drag") + "%", buy.drag],
+    ["Total", "Monthly run rate", "", buy.monthlyCash],
+    ["Total", "Cash over " + d.horizon + " months", "", buy.lifeCash]
+  ];
+  bom.forEach(function(r){ L.push([q(r[0]), q(r[1]), q(r[2]), Math.round(r[3])].join(",")); });
+  L.push("");
+  L.push(q("Every rate, card price and model spec is a list figure typed in as a default. Verify before quoting."));
+  return L.join("\r\n");
+}
+
+function flash(btn, text){
+  var old = btn.textContent;
+  btn.textContent = text; btn.classList.add("done");
+  setTimeout(function(){ btn.textContent = old; btn.classList.remove("done"); }, 1800);
+}
+function copyText(text, btn){
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch(e){ ok = false; }
+    document.body.removeChild(ta);
+    flash(btn, ok ? "Copied" : "Press Ctrl+C");
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ flash(btn, "Copied"); }, fallback);
+  } else fallback();
+}
+
+document.getElementById("ex-print").addEventListener("click", function(){ window.print(); });
+document.getElementById("ex-copy").addEventListener("click", function(){
+  copyText(buildCsv(compute()), this);
+});
+document.getElementById("ex-dl").addEventListener("click", function(){
+  var btn = this;
+  try{
+    var blob = new Blob(["﻿" + buildCsv(compute())], {type:"text/csv;charset=utf-8"});
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url;
+    a.download = "coding-model-tco-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    flash(btn, "Saved");
+  } catch(e){ flash(btn, "Blocked — use Copy"); }
+});
+
 function kpi(cls, k, val, note){
   return '<div class="kpi ' + cls + '"><div class="k">' + k + '</div><div class="v mono">' + val + '</div><div class="n">' + note + '</div></div>';
 }
@@ -1366,6 +1637,8 @@ document.addEventListener("input", function(e){
 document.getElementById("labour").addEventListener("change", render);
 var rt;
 window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(render, 150); });
+window.addEventListener("beforeprint", render);
+window.addEventListener("afterprint", render);
 document.getElementById("gpu").addEventListener("change", function(){
   var g = pick(GPUS, "gpu");
   document.getElementById("gpuBuy").value  = g.buy;
