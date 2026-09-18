@@ -219,6 +219,33 @@ button,select,input{font-family:inherit}
 .capwrap{overflow-x:auto}
 .capfoot{padding:10px 14px;font-size:11.5px;color:var(--muted);background:var(--surface-2);border-top:1px solid var(--line-soft);line-height:1.5}
 
+/* ── verdict, the Overview headline ─────────────────────────────────────── */
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.vhead{padding:26px 28px 24px;border-bottom:1px solid var(--line-soft)}
+.vhead .eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.vhead h1{margin:10px 0 0;font-size:clamp(26px,3.4vw,40px);line-height:1.12;font-weight:700;letter-spacing:-0.03em;text-wrap:balance;max-width:22ch}
+.vhead p{margin:12px 0 0;font-size:15.5px;line-height:1.55;color:var(--ink-2);max-width:62ch}
+.vwould{display:flex;flex-direction:column}
+.vrow{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;padding:14px 28px;border-bottom:1px solid var(--line-soft)}
+.vrow:last-child{border-bottom:0}
+.vrow .q{flex:1 1 320px;font-size:14.5px;color:var(--ink)}
+.vrow .a{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;white-space:nowrap}
+.vrow .a.y{color:var(--good)} .vrow .a.n{color:var(--warn)}
+.vlabel{padding:12px 28px;background:var(--surface-2);border-bottom:1px solid var(--line-soft);font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+/* ── money, the CFO block ───────────────────────────────────────────────── */
+.moneygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.mcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.mcard .mh{padding:11px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line-soft);font-size:13px;color:var(--ink-2)}
+.mrow:last-child{border-bottom:0}
+.mrow b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;color:var(--ink)}
+.mrow b.good{color:var(--good)} .mrow b.bad{color:var(--bad)}
+.msplit{padding:14px 16px;display:flex;flex-direction:column;gap:11px}
+.mbar{display:flex;height:24px;border-radius:5px;overflow:hidden;background:var(--surface-2)}
+.mbar i{display:block}
+.mnote{padding:0 16px 14px;font-size:11.5px;line-height:1.5;color:var(--muted)}
+
 /* ── cash chart ─────────────────────────────────────────────────────────── */
 .cash{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
 .cash .cc{padding:12px 14px 4px}
@@ -422,6 +449,9 @@ footer b{color:var(--ink-2)}
     text-transform:uppercase;color:var(--muted);text-align:left;flex:none;
   }
   .beyondscroll{overflow-x:visible}
+  .vhead{padding:20px 18px}
+  .vrow{padding:12px 18px}
+  .vlabel{padding:10px 18px}
   .chart{--labw:auto;padding:14px 12px 12px}
   .axis{display:none}
   .row{grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:7px 0}
@@ -499,8 +529,10 @@ footer b{color:var(--ink-2)}
     <div class="brand"><b>Coding Model TCO</b><span>Three-year cost of ownership</span></div>
     <div class="tools">
       <div class="seg" id="modes">
-        <button type="button" data-mode="simple" aria-pressed="true">Simple</button>
+        <button type="button" data-mode="overview" aria-pressed="true">Overview</button>
         <button type="button" data-mode="advanced">Advanced</button>
+        <button type="button" data-mode="money">Money</button>
+        <button type="button" data-mode="build">Build</button>
       </div>
       <div class="seg" id="presets" hidden>
         <button type="button" data-preset="solo">Solo</button>
@@ -569,9 +601,13 @@ footer b{color:var(--ink-2)}
       <div class="run" id="p-run"></div>
     </div>
 
+    <section id="sec-verdict" hidden>
+      <div class="verdict" id="verdict"></div>
+    </section>
+
     <div class="kpis" id="kpis"></div>
 
-    <section>
+    <section id="sec-sizing">
       <div class="sechead"><h2>What it takes to serve the model yourself</h2><p>Derived from the model, the quantisation and your peak load.</p></div>
       <div class="sizing">
         <div class="sh"><b>Sizing</b><em id="sz-summary"></em></div>
@@ -580,7 +616,7 @@ footer b{color:var(--ink-2)}
       </div>
     </section>
 
-    <section>
+    <section id="sec-capacity">
       <div class="sechead"><h2>How many developers it can actually carry</h2><p>Sustained output throughput against live agentic sessions.</p></div>
       <div class="cap">
         <div class="capwrap"><table class="captbl">
@@ -593,7 +629,7 @@ footer b{color:var(--ink-2)}
       </div>
     </section>
 
-    <section>
+    <section id="sec-cash">
       <div class="sechead"><h2>Cash out of the door, month by month</h2><p>Capital lands on day one. This is the cheque, not the accounting entry.</p></div>
       <div class="cash">
         <div class="cc" id="cashchart"></div>
@@ -601,7 +637,12 @@ footer b{color:var(--ink-2)}
       </div>
     </section>
 
-    <section>
+    <section id="sec-money" hidden>
+      <div class="sechead"><h2>How it lands on the books</h2><p>By year, by kind, and what it costs to stop.</p></div>
+      <div class="moneygrid" id="moneygrid"></div>
+    </section>
+
+    <section id="sec-chart">
       <div class="sechead"><h2>Monthly cost, by where it goes</h2><p>One shared scale. Hover a block for the exact figure.</p></div>
       <div class="chart">
         <div class="axis" id="axis"></div>
@@ -618,7 +659,7 @@ footer b{color:var(--ink-2)}
       </tr></thead><tbody id="p-routes"></tbody></table>
     </section>
 
-    <section class="pbreak">
+    <section id="sec-bom" class="pbreak">
       <div class="sechead"><h2>Bill of materials</h2><p>If you are set on owning the iron, this is the list.</p></div>
       <div class="bom">
         <div class="bomhead">
@@ -634,12 +675,12 @@ footer b{color:var(--ink-2)}
       </div>
     </section>
 
-    <section>
+    <section id="sec-sens">
       <div class="sechead"><h2>What moves the answer</h2><p>Each assumption swung 30% either way. Orange bars change the answer.</p></div>
       <div class="sens"><div id="sensrows"></div><div class="sfoot" id="sensfoot"></div></div>
     </section>
 
-    <section>
+    <section id="sec-beyond">
       <div class="sechead"><h2>Beyond cost</h2><p>The part no calculator settles.</p></div>
       <div class="beyondwrap"><div class="beyondscroll"><table class="beyond">
         <thead><tr><th>Route</th><th>Where your code goes</th><th>Time to stand up</th><th>If you change your mind</th><th>Needs a hire</th></tr></thead>
@@ -647,12 +688,12 @@ footer b{color:var(--ink-2)}
       </table></div></div>
     </section>
 
-    <section>
+    <section id="sec-cards">
       <div class="sechead"><h2>The nine routes</h2><p>Cheapest first.</p></div>
       <div class="cards" id="cards"></div>
     </section>
 
-    <section class="noprint">
+    <section id="sec-export" class="noprint">
       <div class="sechead"><h2>Take it away</h2><p>The assumptions travel with the numbers.</p></div>
       <div class="export">
         <div class="exbtns">
@@ -892,7 +933,14 @@ function v(id){
   return isFinite(n) && n >= 0 ? n : 0;
 }
 function withOv(o, fn){ var prev = OV; OV = o; try { return fn(); } finally { OV = prev; } }
-function labourOn(){ var c = document.getElementById("labour"); return !c || c.checked; }
+function labourOn(){
+  if(OV && OV.labour !== undefined) return !!OV.labour;
+  var c = document.getElementById("labour"); return !c || c.checked;
+}
+function flagOn(id){
+  if(OV && OV[id] !== undefined) return !!OV[id];
+  var c = document.getElementById(id); return !!(c && c.checked);
+}
 function pick(list, id){ var s = document.getElementById(id); for(var i=0;i<list.length;i++) if(list[i].id === s.value) return list[i]; return list[0]; }
 
 function money(n){
@@ -1048,7 +1096,7 @@ function compute(){
      the fewest minutes. Ordinary review and engineering labour exists on every
      route and is not this tool's to count — which is why the per-task figure is
      labelled AI cost per accepted task, not effective cost per accepted task. */
-  var costFallback = !!(document.getElementById("countFallback") || {}).checked;
+  var costFallback = flagOn("countFallback");
   var minsOf = function(e){
     return e.att * v("minPerAttempt") + (costFallback ? e.unres * v("minPerHumanTask") : 0);
   };
@@ -1132,7 +1180,7 @@ function compute(){
      was a fairness bug rather than a modelling choice. Laptops are exempt:
      nothing is centralised. Bedrock, Azure and self-hosting pay this PLUS
      their own incremental team. */
-  var ownsPlat    = !!(document.getElementById("ownsPlatform") || {}).checked;
+  var ownsPlat    = flagOn("ownsPlatform");
   var platformMo  = (labourOn() && !ownsPlat) ? v("platformFte") * fteMo : 0;
 
   /* Renting skips the hardware but not the bring-up: you still stand up the
@@ -1243,7 +1291,7 @@ function compute(){
     { id:"seats", name:"Flat per-seat plans", group:"Direct from the lab",
       note:"One price per developer per month. Heavy users hit limits; in exchange the bill stops surprising you.",
       upfront:0, capex:0, power:0, people: platformMo,
-      usage: devs * (v("seat") + (document.getElementById("ownsBase") && document.getElementById("ownsBase").checked ? 0 : v("seatBase"))), drag: dragFor(EFF.frontier), eff: EFF.frontier,
+      usage: devs * (v("seat") + (flagOn("ownsBase") ? 0 : v("seatBase"))), drag: dragFor(EFF.frontier), eff: EFF.frontier,
       capTps: devs * v("seatTpm") / 60, unitTps: v("seatTpm") / 60, perDevScale: true, scaling:"Scales one seat at a time, but each seat has its own cap — heavy agents hit it." }
   ];
 
@@ -1322,21 +1370,39 @@ function render(){
   var best = rows[0], worst = rows[rows.length - 1];
   var max = worst.total || 1;
 
-  document.getElementById("kpis").innerHTML =
-      kpi(best.headroom < 1 ? "lose" : "win", "Cheapest route", best.name,
-          best.headroom < 1
-            ? money(best.total) + " a month \u2014 but it throttles at " + best.headroom.toFixed(1) + "x"
-            : money(best.total) + " a month")
-    + kpi("",     d.horizon + "-month bill",  money(best.life), "for " + d.devs + " developer" + (d.devs === 1 ? "" : "s"))
-    + kpi("lose", "Priciest route",           worst.name, money(worst.total) + " a month")
-    + kpi("",     "Spread",                   money((worst.total - best.total) * d.horizon), "saved by picking first over last")
-    + kpi(d.qualityPct >= d.dragSet ? "win" : "lose", "Quality budget",
-          (d.qualityPct > 0 ? d.qualityPct.toFixed(1) : "0") + "%",
-          d.qualityPct <= 0
-            ? "self-hosting costs more even at equal quality"
-            : "developer time the self-hosted saving buys \u2014 your acceptance gap costs " + d.dragPct.toFixed(1) + "%")
-    + kpi("", "Year-one cash", money(best.yearOne),
-          best.upfront > 0 ? exact(best.upfront) + " of it up front" : "no capital outlay");
+  var TILES = {
+    cheapest: function(){
+      return kpi(best.headroom < 1 ? "lose" : "win", "Cheapest route", best.name,
+        best.headroom < 1
+          ? money(best.total) + " a month \u2014 but it throttles at " + best.headroom.toFixed(1) + "x"
+          : money(best.total) + " a month");
+    },
+    life: function(){
+      return kpi("", d.horizon + "-month bill", money(best.life),
+        "for " + d.devs + " developer" + (d.devs === 1 ? "" : "s"));
+    },
+    priciest: function(){ return kpi("lose", "Priciest route", worst.name, money(worst.total) + " a month"); },
+    spread:   function(){
+      return kpi("", "Spread", money((worst.total - best.total) * d.horizon),
+        "saved by picking first over last");
+    },
+    quality:  function(){
+      return kpi(d.qualityPct >= d.dragSet ? "win" : "lose", "Quality budget",
+        (d.qualityPct > 0 ? d.qualityPct.toFixed(1) : "0") + "%",
+        d.qualityPct <= 0
+          ? "self-hosting costs more even at equal quality"
+          : "developer time the self-hosted saving buys \u2014 your acceptance gap costs "
+            + d.dragPct.toFixed(1) + "%");
+    },
+    yearone:  function(){
+      return kpi("", "Year-one cash", money(best.yearOne),
+        best.upfront > 0 ? exact(best.upfront) + " of it up front" : "no capital outlay");
+    }
+  };
+  var wanted = (MODES[MODE] || MODES.overview).kpis;
+  document.getElementById("kpis").innerHTML = wanted.map(function(k){
+    return TILES[k] ? TILES[k]() : "";
+  }).join("");
 
   /* sizing strip */
   document.getElementById("sz-summary").textContent =
@@ -1432,7 +1498,13 @@ function render(){
       + '<p class="note">' + r.note + ' <b style="color:var(--ink-2)">Scale:</b> ' + r.scaling + '</p></article>';
   }).join("");
 
+  /* Two "what if" runs the verdict quotes. Both replay the one cost model. */
+  d.beEqual = breakEvenDevs(true);
+  var flipped = withOv({costFallback: !d.costFallback}, compute);
+  d.flipName = flipped.rows[0].id !== d.rows[0].id ? flipped.rows[0].name : null;
+
   renderCash(d); renderBom(d); renderSens(d); renderBeyond(d); renderPrint(d);
+  renderVerdict(d); renderMoney(d);
 
   var an = document.getElementById("s-accept-note");
   if(an) an.textContent = "costs " + d.dragPct.toFixed(1) + "% of coding time";
@@ -1522,13 +1594,14 @@ function renderCash(d){
   });
 
   if(padR > 20){
-    series.slice().sort(function(a,b){ return a.r.cashAt(d.horizon) - b.r.cashAt(d.horizon); })
-      .forEach(function(x, i, arr){
+    /* Highest line first, then push each label DOWN clear of the one above.
+       Sorting the other way pushed labels back into each other. */
+    var placed = [];
+    series.slice().sort(function(a,b){ return b.r.cashAt(d.horizon) - a.r.cashAt(d.horizon); })
+      .forEach(function(x){
         var y = Y(x.r.cashAt(d.horizon));
-        for(var j = 0; j < i; j++){
-          var oy = Y(arr[j].r.cashAt(d.horizon));
-          if(Math.abs(y - oy) < 26) y = oy + 26;
-        }
+        if(placed.length && y < placed[placed.length - 1] + 30) y = placed[placed.length - 1] + 30;
+        placed.push(y);
         g += '<text x="' + (W - padR + 8) + '" y="' + (y - 1) + '" font-size="11" font-weight="600"'
            + ' style="fill:' + x.c + '">' + x.name + '</text>'
            + '<text x="' + (W - padR + 8) + '" y="' + (y + 12) + '" font-size="10.5"'
@@ -1553,7 +1626,7 @@ function renderCash(d){
           : late ? "past your " + d.horizon + "-month horizon" : "against " + hosted.name)
       + '</div></div>';
   });
-  var beNow = breakEvenDevs(false), beEqual = breakEvenDevs(true);
+  var beNow = breakEvenDevs(false), beEqual = d.beEqual;
   cx += '<div class="cx ' + (beNow ? "yes" : "no") + '"><div class="k">Owning wins above</div>'
      + '<div class="v">' + (beNow ? beNow + " devs" : "No team size") + '</div>'
      + '<div class="n">at ' + v("acceptOpen") + '% open-model acceptance</div></div>'
@@ -1916,6 +1989,92 @@ document.getElementById("ex-dl").addEventListener("click", function(){
   }, blobSave);
 });
 
+
+/* ═══ the verdict: what a CIO is actually asked in the room ═══════════════ */
+function renderVerdict(d){
+  var best = d.rows[0], own = {laptop:1, buy:1, rent:1};
+  var line, sub;
+  if(best.id === "hybrid"){
+    line = "Run the cheap model first. Escalate what it cannot finish.";
+    sub  = "Two independent attempts finish more work than either approach alone, and only "
+         + Math.round(best.eff.unres * 100) + "% of accepted tasks still need a person — against "
+         + Math.round(d.EFF.frontier.unres * 100) + "% on the frontier model by itself.";
+  } else if(own[best.id]){
+    line = "Run it on your own hardware.";
+    sub  = "At this size the fleet is cheaper than metered tokens even after the weaker model's "
+         + "extra attempts are counted. That advantage is narrow and it depends on quality holding up.";
+  } else {
+    line = "Rent the model. Do not buy the hardware.";
+    sub  = "At this team size, owning accelerators costs more than renting tokens before the open "
+         + "model's weaker output is even counted."
+         + (d.beEqual ? " That stays true until roughly " + d.beEqual + " developers." : "");
+  }
+
+  var q = [];
+  q.push({ q:"The open model matches the frontier on first-pass quality",
+           a: d.beEqual ? "Owning wins above " + d.beEqual + " developers" : "Owning still never wins",
+           ok: !!d.beEqual });
+  q.push({ q:"We count the work the agent cannot finish at all",
+           a: d.flipName ? d.flipName + " becomes cheapest" : "The ranking does not move",
+           ok: !!d.flipName });
+  q.push({ q:"Code may not leave our own network",
+           a:"Cost stops being the question", ok:false });
+  if(best.headroom < 1)
+    q.push({ q:"We need every developer served at once, without queueing",
+             a:"This route throttles at " + best.headroom.toFixed(1) + "x", ok:false });
+
+  document.getElementById("verdict").innerHTML =
+      '<div class="vhead"><div class="eyebrow">The recommendation</div>'
+    + '<h1>' + line + '</h1><p>' + sub + '</p></div>'
+    + '<div class="vlabel">What would change this answer</div>'
+    + '<div class="vwould">' + q.map(function(r){
+        return '<div class="vrow"><span class="q">' + r.q + '</span>'
+             + '<span class="a ' + (r.ok ? "y" : "n") + '">' + r.a + '</span></div>';
+      }).join("") + '</div>';
+}
+
+/* ═══ money: cash timing, kind of spend, and the cost of stopping ═════════ */
+function renderMoney(d){
+  var best = d.rows[0], buy = byId(d, "buy");
+  var yrs = Math.ceil(d.horizon / 12), rows = "";
+  for(var y = 1; y <= yrs; y++){
+    var months = Math.min(12, d.horizon - (y - 1) * 12);
+    var amt = (y === 1 ? best.upfront : 0) + best.monthlyCash * months;
+    rows += '<div class="mrow"><span>Year ' + y + (months < 12 ? " (" + months + " mo)" : "") + '</span><b>'
+          + exact(amt) + '</b></div>';
+  }
+  var capexShare = best.lifeCash > 0 ? best.upfront / best.lifeCash * 100 : 0;
+
+  document.getElementById("moneygrid").innerHTML =
+      '<div class="mcard"><div class="mh">Cash by year</div>' + rows
+    + '<div class="mrow"><span>Full term</span><b>' + exact(best.lifeCash) + '</b></div></div>'
+
+    + '<div class="mcard"><div class="mh">Capital versus operating</div><div class="msplit">'
+    +   '<div class="mbar"><i style="width:' + capexShare.toFixed(1) + '%;background:var(--s1)"></i>'
+    +   '<i style="width:' + (100 - capexShare).toFixed(1) + '%;background:var(--s2)"></i></div>'
+    +   '<div class="mrow" style="padding:0;border:0"><span>Capital, day one</span><b>' + exact(best.upfront) + '</b></div>'
+    +   '<div class="mrow" style="padding:0;border:0"><span>Operating, over ' + d.horizon + ' months</span><b>'
+    +     exact(best.monthlyCash * d.horizon) + '</b></div></div>'
+    + '<p class="mnote">' + (best.upfront > 0
+        ? "Capital is written down over " + d.amort + " months in the cost comparison; this is the cheque."
+        : "Nothing to capitalise or depreciate on this route.") + '</p></div>'
+
+    + '<div class="mcard"><div class="mh">If you bought the hardware instead</div>'
+    +   '<div class="mrow"><span>Cheque on day one</span><b class="bad">' + exact(buy.upfront) + '</b></div>'
+    +   '<div class="mrow"><span>Monthly run rate</span><b>' + exact(buy.monthlyCash) + '</b></div>'
+    +   '<div class="mrow"><span>Over ' + d.horizon + ' months</span><b>' + exact(buy.lifeCash) + '</b></div>'
+    +   '<div class="mrow"><span>Difference</span><b class="' + (buy.lifeCash > best.lifeCash ? "bad" : "good") + '">'
+    +     (buy.lifeCash > best.lifeCash ? "+" : "") + exact(buy.lifeCash - best.lifeCash) + '</b></div></div>'
+
+    + '<div class="mcard"><div class="mh">Cost of stopping</div>'
+    +   '<div class="mrow"><span>Committed spend on the recommendation</span><b class="'
+    +     (best.upfront > 0 ? "bad" : "good") + '">' + exact(best.upfront) + '</b></div>'
+    +   '<div class="mrow"><span>Notice period</span><b>' + (best.upfront > 0 ? "Asset life" : "None") + '</b></div>'
+    +   '<div class="mrow"><span>Stranded if reversed in year one</span><b class="bad">'
+    +     exact(d.bom.hwCapex * (2 / 3)) + '</b></div>'
+    + '<p class="mnote">Hardware bought and then abandoned recovers little. Metered spend stops when you stop.</p></div>';
+}
+
 function kpi(cls, k, val, note){
   return '<div class="kpi ' + cls + '"><div class="k">' + k + '</div><div class="v mono">' + val + '</div><div class="n">' + note + '</div></div>';
 }
@@ -1933,8 +2092,12 @@ document.addEventListener("input", function(e){
 document.getElementById("labour").addEventListener("change", render);
 var rt;
 window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(render, 150); });
-window.addEventListener("beforeprint", render);
-window.addEventListener("afterprint", render);
+window.addEventListener("beforeprint", function(){
+  ALLSECS.forEach(function(id){ var el = document.getElementById(id); if(el) el.hidden = false; });
+  var ex = document.getElementById("sec-export"); if(ex) ex.hidden = true;
+  render();
+});
+window.addEventListener("afterprint", function(){ setMode(MODE); });
 document.getElementById("gpu").addEventListener("change", function(){
   var g = pick(GPUS, "gpu");
   document.getElementById("gpuTf").value   = g.tf;
@@ -2032,13 +2195,40 @@ function bindLever(sliderId, targetId, fmt){
 var syncDevs = bindLever("s-devs", "devs", function(x){ return x; });
 var syncDrag = bindLever("s-accept", "acceptOpen", function(x){ return x + "%"; });
 
+/* Four readers, one model. The arithmetic never changes between these; what
+   changes is which figures are on screen and the unit they are quoted in. A
+   reader should never meet a number they would have to translate first. */
+var MODES = {
+  overview: { rail:"simple", presets:false,
+    show:["sec-verdict","sec-beyond","sec-export"],
+    kpis:["cheapest","life","quality"] },
+  advanced: { rail:"full", presets:true,
+    show:["sec-chart","sec-capacity","sec-sens","sec-cards","sec-export"],
+    kpis:["cheapest","life","priciest","spread","quality"] },
+  money:    { rail:"full", presets:true,
+    show:["sec-cash","sec-money","sec-export"],
+    kpis:["life","yearone","spread","priciest"] },
+  build:    { rail:"full", presets:true,
+    show:["sec-sizing","sec-capacity","sec-bom","sec-export"],
+    kpis:["cheapest","yearone"] }
+};
+var MODE = "overview";
+var ALLSECS = ["sec-verdict","sec-sizing","sec-capacity","sec-cash","sec-money",
+               "sec-chart","sec-bom","sec-sens","sec-beyond","sec-cards","sec-export"];
+
 function setMode(mode){
-  var simple = mode === "simple";
+  var m = MODES[mode] || MODES.overview;
+  MODE = MODES[mode] ? mode : "overview";
+  var simple = m.rail === "simple";
   document.getElementById("simplepanel").hidden = !simple;
-  document.getElementById("presets").hidden = simple;
+  document.getElementById("presets").hidden = !m.presets;
   document.querySelectorAll(".rail details.panel").forEach(function(d){ d.hidden = simple; });
+  ALLSECS.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.hidden = m.show.indexOf(id) === -1;
+  });
   document.querySelectorAll("#modes button").forEach(function(b){
-    b.setAttribute("aria-pressed", b.getAttribute("data-mode") === mode ? "true" : "false");
+    b.setAttribute("aria-pressed", b.getAttribute("data-mode") === MODE ? "true" : "false");
   });
   if(simple){ syncDevs(); syncDrag(); }
   render();
@@ -2046,6 +2236,7 @@ function setMode(mode){
 document.getElementById("modes").addEventListener("click", function(e){
   var b = e.target.closest("button"); if(b) setMode(b.getAttribute("data-mode"));
 });
+setMode("overview");
 
 document.getElementById("themebtn").addEventListener("click", function(){
   var root = document.documentElement;

@@ -92,10 +92,10 @@ Works on a phone, a tablet and a desktop.
 
 ## Using it
 
-1. Start in **Simple**. Set the team size and pick a usage tier.
+1. Start in **Overview**. Set the team size and pick a usage tier.
 2. Drag **open-model first-pass acceptance** up to match the frontier and watch
    the ranking flip. That slider decides the whole argument.
-3. Switch to **Advanced** to pick your model, precision and card, replace the
+3. Switch to **Advanced**, **Money** or **Build** to pick your model, precision and card, replace the
    list prices in **Model rates** with your contract rates, and put your own
    numbers in **Effectiveness** — those four fields are the only ones you cannot
    check against a vendor price list, and they are the ones that decide it.

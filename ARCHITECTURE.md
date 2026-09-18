@@ -517,8 +517,26 @@ stack unwinds into recursion.
 
 ## 7. Modes
 
-**Simple** shows three levers and nothing else: developers, a usage tier, and
-the open-model time penalty. They are the three inputs that move the answer
+Four readers, one model. `MODES` maps each to the sections it shows, whether the
+rail is the three-lever panel or all seven, and which KPI tiles render. `setMode`
+toggles `hidden` on every section id in `ALLSECS` and re-renders; `beforeprint`
+un-hides them all so paper carries the whole document whatever the screen shows.
+
+| Mode | Rail | Sections | KPIs |
+| --- | --- | --- | --- |
+| `overview` | three levers | verdict, beyond cost | cheapest, full term, quality budget |
+| `advanced` | all panels | chart, capacity, sensitivity, cards | + priciest, spread |
+| `money` | all panels | cash curve, books | full term, year one, spread, priciest |
+| `build` | all panels | sizing, capacity, bill of materials | cheapest, year one |
+
+The verdict block picks its headline from the winning route's group and quotes
+two replayed runs: `breakEvenDevs(true)` for the equal-quality case, and a
+`withOv({costFallback: !current})` run to name the route that would win if
+unfinished work were costed. Both go through the same `compute()`; neither has
+its own copy of the model.
+
+**Overview** shows three levers and nothing else: developers, a usage tier, and
+open-model first-pass acceptance. They are the three inputs that move the answer
 most. The tier buttons write into the same `inTok` / `outTok` / `codeHrs`
 fields the advanced panels use, and the sliders write into `devs` and `drag`,
 so `compute()` never knows which mode is on. Switching to Simple re-syncs the

@@ -30,8 +30,14 @@ pulls. Do not add more.
 6. **Changing a default means updating `SOURCES.md`.** Every number in the
    catalogues and rate panels has a recorded provenance. A default with no
    source is a guess wearing a suit.
-7. **Simple mode stays at three levers.** A fourth is always tempting and always
-   wrong — that is what Advanced is for.
+7. **Overview stays at three levers.** A fourth is always tempting and always
+   wrong — that is what the other three modes are for.
+8. **A mode never gets its own arithmetic.** Modes choose which sections and
+   tiles render, never how a number is computed. A figure that exists in one
+   mode and not another is a framing decision; a figure that differs between
+   modes is a bug.
+9. **Build withholds the verdict deliberately.** Someone reading a bill of
+   materials is checking the arithmetic. Do not add a recommendation there.
 
 ## How to add things
 
