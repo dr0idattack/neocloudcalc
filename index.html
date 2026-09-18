@@ -207,6 +207,7 @@ button,select,input{font-family:inherit}
 .captbl td:first-child{text-align:left;white-space:normal;min-width:132px}
 .captbl tr:last-child td{border-bottom:0}
 .captbl tbody tr:hover{background:var(--surface-2)}
+.captbl tr.win td{background:var(--good-soft)}
 .captbl .nm b{font-weight:600;display:block;line-height:1.25}
 .captbl .nm span{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .hb{display:flex;align-items:center;gap:8px;justify-content:flex-end}
@@ -217,6 +218,15 @@ button,select,input{font-family:inherit}
 .h-mid .hbar i{background:var(--s4)}     .h-mid .hval{color:var(--warn)}
 .h-no  .hbar i{background:var(--bad)}    .h-no  .hval{color:var(--bad)}
 .capwrap{overflow-x:auto}
+.mdl{display:grid;gap:12px}
+.usebtn{
+  font:inherit;font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;
+  padding:4px 10px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink-2);
+}
+.usebtn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.usebtn[disabled]{opacity:.45;cursor:default}
+.usebtn[disabled]:hover{background:var(--surface-2);border-color:var(--line);color:var(--ink-2)}
 .capfoot{padding:10px 14px;font-size:11.5px;color:var(--muted);background:var(--surface-2);border-top:1px solid var(--line-soft);line-height:1.5}
 
 /* ── verdict, the Overview headline ─────────────────────────────────────── */
@@ -607,6 +617,25 @@ footer b{color:var(--ink-2)}
 
     <div class="kpis" id="kpis"></div>
 
+    <section id="sec-models">
+      <div class="sechead"><h2>Which model, at your workload</h2><p>The same month of work, priced on every model. Rate cards are list prices &mdash; press Use to load one into the rail and edit it.</p></div>
+      <div class="mdl">
+        <div class="cap">
+          <div class="capwrap"><table class="captbl">
+            <thead><tr><th>Pay per token</th><th>In $/M</th><th>Out $/M</th><th>Your bill / mo</th><th>AI $ / task</th><th></th></tr></thead>
+            <tbody id="mdl-apibody"></tbody>
+          </table></div>
+        </div>
+        <div class="cap">
+          <div class="capwrap"><table class="captbl">
+            <thead><tr><th>Host it yourself</th><th>Memory / replica</th><th>Cards</th><th>Own it / mo</th><th>Laptop</th><th></th></tr></thead>
+            <tbody id="mdl-ownbody"></tbody>
+          </table></div>
+          <div class="capfoot" id="mdlfoot"></div>
+        </div>
+      </div>
+    </section>
+
     <section id="sec-sizing">
       <div class="sechead"><h2>What it takes to serve the model yourself</h2><p>Derived from the model, the quantisation and your peak load.</p></div>
       <div class="sizing">
@@ -652,7 +681,7 @@ footer b{color:var(--ink-2)}
     </section>
 
     <section class="printonly">
-      <div class="sechead"><h2>All nine routes</h2></div>
+      <div class="sechead"><h2 id="p-routes-h">All routes</h2></div>
       <table class="ptbl"><thead><tr>
         <th>Route</th><th>Monthly</th><th>Up front</th><th>Full term</th>
         <th>Per dev / mo</th><th>AI / task</th><th>Unfinished</th><th>Headroom</th>
@@ -689,7 +718,7 @@ footer b{color:var(--ink-2)}
     </section>
 
     <section id="sec-cards">
-      <div class="sechead"><h2>The nine routes</h2><p>Cheapest first.</p></div>
+      <div class="sechead"><h2 id="cards-h">Every route</h2><p>Cheapest first.</p></div>
       <div class="cards" id="cards"></div>
     </section>
 
@@ -780,9 +809,26 @@ var PROFILES = [
    Enterprise needs a GitHub Enterprise Cloud seat, which many buyers already
    hold — hence the entitlement switch, which drops it. */
 var SEATPLANS = [
-  {id:"cursorp",  label:"Cursor Premium",           seat:120, base:0},
-  {id:"cursors",  label:"Cursor Standard",          seat:40,  base:0},
-  {id:"copilot",  label:"GitHub Copilot Enterprise", seat:39,  base:21}
+  {id:"copilotpro",  label:"GitHub Copilot Pro \u2014 individual", seat:10,  base:0,  tpm:300},
+  {id:"claudepro",   label:"Claude Pro \u2014 individual",         seat:20,  base:0,  tpm:350},
+  {id:"cursorpro",   label:"Cursor Pro \u2014 individual",         seat:20,  base:0,  tpm:350},
+  {id:"chatgptplus", label:"ChatGPT Plus \u2014 individual",       seat:20,  base:0,  tpm:350},
+  {id:"claudemax5",  label:"Claude Max 5x \u2014 individual",      seat:100, base:0,  tpm:1800},
+  {id:"claudemax20", label:"Claude Max 20x \u2014 individual",     seat:200, base:0,  tpm:7000},
+  {id:"chatgptpro",  label:"ChatGPT Pro \u2014 individual",        seat:200, base:0,  tpm:7000},
+  {id:"cursors",     label:"Cursor Standard \u2014 team",          seat:40,  base:0,  tpm:900},
+  {id:"cursorp",     label:"Cursor Premium \u2014 team",           seat:120, base:0,  tpm:2200},
+  {id:"copilot",     label:"GitHub Copilot Enterprise",           seat:39,  base:21, tpm:900}
+];
+
+/* Frontier rate cards, dollars per million tokens. These are list prices and
+   they move; every one of them is editable in the rail, and the model table
+   writes the chosen row into those fields rather than hiding it. */
+var FRONTIER = [
+  {id:"sonnet5", label:"Claude Sonnet 5",  lab:"Anthropic", pin:2,  pout:10, pcache:0.20},
+  {id:"opus5",   label:"Claude Opus 5",    lab:"Anthropic", pin:15, pout:75, pcache:1.50},
+  {id:"haiku45", label:"Claude Haiku 4.5", lab:"Anthropic", pin:1,  pout:5,  pcache:0.10},
+  {id:"gpt56",   label:"GPT-5.6 Sol",      lab:"OpenAI",    pin:4,  pout:20, pcache:0.40}
 ];
 
 /* ═══ fields: [id, label, unit, default, step] ════════════════════════════ */
@@ -810,6 +856,8 @@ var GROUPS = {
     ["devRate","Loaded developer cost","$/h",95,1],
     ["fteCost","Loaded platform engineer","$/yr",260000,5000],
     ["platformFte","Baseline AI platform team","FTE",0.5,0.05],
+    ["platformAt","Full platform team at","devs",20,1],
+    ["soloAt","Small-team advice up to","devs",3,1],
     ["apiDiscount","Negotiated API discount","%",0,1]
   ],
   "f-effect": [
@@ -875,6 +923,11 @@ var GROUPS = {
     ["azIn","Azure · input","$/M",4,0.05],
     ["azOut","Azure · output","$/M",20,0.25],
     ["azCache","Azure · cache read","$/M",0.40,0.01],
+    ["orIn","Serverless open \u00b7 input","$/M",0.30,0.05],
+    ["orOut","Serverless open \u00b7 output","$/M",1.20,0.05],
+    ["orCache","Serverless open \u00b7 cache read","$/M",0.08,0.01],
+    ["orFee","Aggregator credit fee","%",5,0.5],
+    ["orTpm","Serverless ceiling","k tok/min",10000,500],
     ["seat","Seat price","$/dev/mo",120,5],
     ["seatBase","Platform seat it rides on","$/dev/mo",0,1],
     ["cloudOps","Cloud plumbing staff","FTE",0.15,0.05],
@@ -941,7 +994,13 @@ function flagOn(id){
   if(OV && OV[id] !== undefined) return !!OV[id];
   var c = document.getElementById(id); return !!(c && c.checked);
 }
-function pick(list, id){ var s = document.getElementById(id); for(var i=0;i<list.length;i++) if(list[i].id === s.value) return list[i]; return list[0]; }
+/* Catalogue choices are replayable too, which is what lets the model table
+   below re-run the whole cost model once per candidate model. */
+function pick(list, id){
+  var val = (OV && OV[id] !== undefined) ? OV[id] : (document.getElementById(id) || {}).value;
+  for(var i=0;i<list.length;i++) if(list[i].id === val) return list[i];
+  return list[0];
+}
 
 function money(n){
   if(!isFinite(n) || n <= 0) return "$0";
@@ -1171,8 +1230,8 @@ function compute(){
   var hwCapex     = cards + sparesCost + chassis + fabric + install;
   var buyUpfront  = hwCapex + setupLabour;
   var warrantyMo  = hwCapex * (v("warranty") / 100) / 12;
-  var adminMo     = labourOn() ? v("adminFte") * fteMo : 0;
-  var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo : 0;
+  var adminMo     = labourOn() ? v("adminFte") * fteMo * teamRamp : 0;
+  var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo * teamRamp : 0;
 
   /* Every centralised route needs a gateway, secrets, IAM, observability,
      evals, rate-limit handling, cost controls and a security review. Charging
@@ -1181,7 +1240,15 @@ function compute(){
      nothing is centralised. Bedrock, Azure and self-hosting pay this PLUS
      their own incremental team. */
   var ownsPlat    = flagOn("ownsPlatform");
-  var platformMo  = (labourOn() && !ownsPlat) ? v("platformFte") * fteMo : 0;
+  /* A solo developer does not employ a fifth of a platform engineer, and a
+     team of three does not staff a rota. Charging the full baseline at every
+     headcount made one-developer answers absurd: half an FTE is $10,800 a
+     month against roughly $200 of tokens. Ongoing staffing therefore ramps
+     with the team and reaches full strength at the headcount below. One-off
+     setup labour does NOT ramp \u2014 standing up a serving stack is the same
+     work whoever it is for. */
+  var teamRamp    = v("platformAt") > 0 ? Math.min(1, devs / v("platformAt")) : 1;
+  var platformMo  = (labourOn() && !ownsPlat) ? v("platformFte") * fteMo * teamRamp : 0;
 
   /* Renting skips the hardware but not the bring-up: you still stand up the
      serving stack, evaluate the model and pass a security review. */
@@ -1249,6 +1316,14 @@ function compute(){
       usage: s.gpus * v("gpuRent") * 730 * (v("rentUtil")/100),
       drag: dragFor(EFF.open), eff: EFF.open,
       capTps: fleetTps, scaling:"Same ceiling as buying, but you can add replicas in minutes — if the region has stock." },
+
+    { id:"serverless", name:"Open model, hosted by someone else", group:"Serverless open weights",
+      note:"The same open weights on an aggregator such as OpenRouter, or a provider such as Together or Fireworks. Per token, no fleet, no rack, no waiting for stock \u2014 and no platform team until the team is big enough to need one.",
+      upfront:0, capex:0, power:0, people: platformMo,
+      usage: tokens(v("orIn"), v("orOut"), v("orCache"), openTokenMult) * (1 + v("orFee") / 100),
+      drag: dragFor(EFF.open), eff: EFF.open,
+      capTps: v("orTpm") * 1000 / 60,
+      scaling:"Effectively elastic \u2014 the provider owns the fleet. You inherit their queue on a bad day, and their choice of which weights to keep warm." },
 
     { id:"bedrock", name:"AWS Bedrock", group:"Cloud platform",
       note:"Frontier model inside your AWS account. Same token rate as going direct, plus the people who wire up VPC, IAM and logging.",
@@ -1344,8 +1419,21 @@ function compute(){
   var qualityBudget = cheapestHosted - cheapestOwnInfra;
   var qualityPct = codingSpendMo > 0 ? qualityBudget / codingSpendMo * 100 : 0;
 
+  /* For a small team the whole argument collapses to one question: which flat
+     plan keeps up with one live session? Pick the cheapest that does, and the
+     cheapest overall, so the verdict can name both. */
+  var planFit = null, planLow = null;
+  SEATPLANS.forEach(function(p){
+    var mo = p.seat + (flagOn("ownsBase") ? 0 : p.base);
+    var c = {plan:p, mo:mo, head: sessTps > 0 ? (p.tpm / 60) / sessTps : 0};
+    if(!planLow || mo < planLow.mo) planLow = c;
+    if(c.head >= 1 && (!planFit || mo < planFit.mo)) planFit = c;
+  });
+
   rows.sort(function(a,b){ return a.total - b.total; });
   return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps, bom:BOM,
+           planFit:planFit, planLow:planLow, teamRamp:teamRamp,
+           fresh:fresh, cached:cached, outTokMo:outTok, disc:disc,
            amort:amort, labour:labourOn(), platformMo:platformMo,
            EFF:EFF, openTokenMult:openTokenMult, costFallback:costFallback,
            acceptedTasksMo:acceptedTasksMo, hybridBuy:hybridBuy, hybridSize:hs,
@@ -1504,13 +1592,13 @@ function render(){
   d.flipName = flipped.rows[0].id !== d.rows[0].id ? flipped.rows[0].name : null;
 
   renderCash(d); renderBom(d); renderSens(d); renderBeyond(d); renderPrint(d);
-  renderVerdict(d); renderMoney(d);
+  renderVerdict(d); renderMoney(d); renderModels(d);
 
   var an = document.getElementById("s-accept-note");
   if(an) an.textContent = "costs " + d.dragPct.toFixed(1) + "% of coding time";
 
   document.getElementById("ex-note").innerHTML =
-    "<b style=\"color:var(--ink-2)\">Print</b> gives a clean document: the verdict, all nine routes, "
+    "<b style=\"color:var(--ink-2)\">Print</b> gives a clean document: the verdict, every route, "
     + "the bill of materials, and every assumption listed at the end so nobody has to ask what you plugged in. "
     + "<b style=\"color:var(--ink-2)\">CSV</b> carries the same thing as numbers a spreadsheet can work with \u2014 "
     + "assumptions, sizing, the route comparison with its five cost components, and the bill of materials line by line. "
@@ -1767,10 +1855,74 @@ function renderSens(d){
     + "you buy a whole node whether you fill it or not, and nothing changes until you need the next one.";
 }
 
+/* ═══ model simulation ════════════════════════════════════════════════════
+   Same month of work, re-priced on every candidate. The hosted table is a
+   rate-card swap, so it is arithmetic on the token volumes the run already
+   produced. The self-hosted table is a full replay of the cost model once per
+   set of weights, because changing the model changes the fleet under it. */
+function renderModels(d){
+  var tasks = d.acceptedTasksMo;
+  function bill(pin, pout, pcache, mult){
+    var m = mult === undefined ? 1 : mult;
+    return (((d.fresh * m) / 1e6) * pin + ((d.cached * m) / 1e6) * pcache
+          + ((d.outTokMo * m) / 1e6) * pout) * d.disc;
+  }
+  var api = FRONTIER.map(function(f){
+    var mo = bill(f.pin, f.pout, f.pcache);
+    return {label:f.label, sub:f.lab, pin:f.pin, pout:f.pout, mo:mo, id:f.id, use:true};
+  });
+  api.push({ label:"Open weights, serverless", sub:"OpenRouter / Together / Fireworks",
+    pin:v("orIn"), pout:v("orOut"),
+    mo: bill(v("orIn"), v("orOut"), v("orCache"), d.openTokenMult) * (1 + v("orFee") / 100),
+    use:false });
+  var apiLow = Math.min.apply(null, api.map(function(r){ return r.mo; }));
+
+  document.getElementById("mdl-apibody").innerHTML = api.map(function(r){
+    return '<tr' + (r.mo === apiLow ? ' class="win"' : '') + '>'
+      + '<td class="nm"><b>' + r.label + '</b><span>' + r.sub + '</span></td>'
+      + '<td class="mono" data-label="In $/M">$' + r.pin.toFixed(2) + '</td>'
+      + '<td class="mono" data-label="Out $/M">$' + r.pout.toFixed(2) + '</td>'
+      + '<td class="mono" data-label="Your bill / mo">' + money(r.mo) + '</td>'
+      + '<td class="mono" data-label="AI $ / task">' + (tasks > 0 ? "$" + (r.mo / tasks).toFixed(2) : "\u2014") + '</td>'
+      + '<td>' + (r.use
+          ? '<button class="usebtn" type="button" data-usemodel="' + r.id + '">Use</button>'
+          : '<button class="usebtn" type="button" disabled>In rail</button>') + '</td></tr>';
+  }).join("");
+
+  var here = pick(MODELS, "model").id;
+  var own = MODELS.map(function(m){
+    var r = withOv({model:m.id}, function(){ var c = compute(); return {
+      buy: byId(c, "buy"), s: c.s }; });
+    return {m:m, sz:r.s, mo:r.buy.total};
+  });
+  var ownLow = Math.min.apply(null, own.map(function(r){ return r.mo; }));
+  document.getElementById("mdl-ownbody").innerHTML = own.map(function(r){
+    return '<tr' + (r.mo === ownLow ? ' class="win"' : '') + '>'
+      + '<td class="nm"><b>' + r.m.label + '</b><span>' + r.m.active + 'B active of ' + r.m.total + 'B</span></td>'
+      + '<td class="mono" data-label="Memory / replica">' + num(r.sz.vramNeed) + ' GB</td>'
+      + '<td class="mono" data-label="Cards">' + r.sz.gpus + ' x ' + r.sz.gpusPerReplica + '</td>'
+      + '<td class="mono" data-label="Own it / mo">' + money(r.mo) + '</td>'
+      + '<td data-label="Laptop"><span class="chip ' + (r.sz.fitsLaptop ? "g" : "r") + '">'
+      +   (r.sz.fitsLaptop ? "Fits" : "No") + '</span></td>'
+      + '<td>' + (r.m.id === here
+          ? '<button class="usebtn" type="button" disabled>Selected</button>'
+          : '<button class="usebtn" type="button" data-usemodel="open:' + r.m.id + '">Use</button>') + '</td></tr>';
+  }).join("");
+
+  document.getElementById("mdlfoot").innerHTML =
+      'Hosted rows price the frontier token volume: <b class="mono">' + num(d.fresh / 1e6) + 'M</b> fresh input, '
+    + '<b class="mono">' + num(d.cached / 1e6) + 'M</b> cached and <b class="mono">' + num(d.outTokMo / 1e6, 1)
+    + 'M</b> output a month. The serverless row carries <b class="mono">' + d.openTokenMult.toFixed(2)
+    + 'x</b> that, because a weaker model needs more attempts for the same accepted work. '
+    + 'Self-hosted rows are a full replay of the cost model on those weights \u2014 fleet, power, rack and staffing move with the model, '
+    + 'which is why the cheapest weights to run are rarely the cheapest weights to own.';
+}
+
 var BEYOND = {
   laptop:    ["Never leaves the laptop", "Days", "Sell the laptops", ["g","No"]],
   buy:       ["Never leaves your racks", "3–6 months, mostly procurement", "You own depreciating silicon", ["r","Yes, platform team"]],
   rent:      ["Your tenancy, provider's building", "Days to weeks", "Stop the instances", ["a","Part of one"]],
+  serverless:["Provider's API under their terms", "Minutes", "Stop topping up credit", ["g","No"]],
   bedrock:   ["Your AWS account, not the model vendor's", "Days", "Swap the endpoint", ["a","Part of one"]],
   azure:     ["Your Azure tenant", "Days", "Swap the endpoint", ["a","Part of one"]],
   anthropic: ["Vendor's API under their terms", "Hours", "Swap the endpoint", ["g","No"]],
@@ -1994,7 +2146,24 @@ document.getElementById("ex-dl").addEventListener("click", function(){
 function renderVerdict(d){
   var best = d.rows[0], own = {laptop:1, buy:1, rent:1};
   var line, sub;
-  if(best.id === "hybrid"){
+  /* One developer is not a small enterprise. Below the threshold the honest
+     answer is a subscription or a metered key, and the enterprise machinery
+     behind the other routes is noise. Say so first, before the ranking. */
+  var solo = d.devs > 0 && d.devs <= v("soloAt");
+  if(solo && d.planFit){
+    line = d.devs === 1 ? "You are one developer. Buy a plan." : "A team this small should buy plans.";
+    sub  = "The cheapest flat plan that keeps up with a live session is "
+         + plain(d.planFit.plan.label) + " at " + exact(d.planFit.mo) + " a developer a month, "
+         + exact(d.planFit.mo * d.devs) + " for " + d.devs + ". "
+         + "If your use is bursty, a metered key is cheaper still: the open weights on a serverless "
+         + "provider come to " + money(byId(d, "serverless").usage) + " a month at this volume. "
+         + "Nothing here needs a platform team, a rack or a purchase order.";
+  } else if(best.id === "serverless"){
+    line = "Rent the open weights. Do not run them.";
+    sub  = "Someone else already owns a warm fleet of these weights and sells them by the token. "
+         + "At this size that beats both your own accelerators and the frontier rate card, and it "
+         + "carries no capital, no rota and no lead time.";
+  } else if(best.id === "hybrid"){
     line = "Run the cheap model first. Escalate what it cannot finish.";
     sub  = "Two independent attempts finish more work than either approach alone, and only "
          + Math.round(best.eff.unres * 100) + "% of accepted tasks still need a person — against "
@@ -2019,6 +2188,10 @@ function renderVerdict(d){
            ok: !!d.flipName });
   q.push({ q:"Code may not leave our own network",
            a:"Cost stops being the question", ok:false });
+  if(!solo && d.planFit)
+    q.push({ q:"We just want one price per developer, with no surprises",
+             a: plain(d.planFit.plan.label) + " at " + exact(d.planFit.mo * d.devs) + "/mo",
+             ok:true });
   if(best.headroom < 1)
     q.push({ q:"We need every developer served at once, without queueing",
              a:"This route throttles at " + best.headroom.toFixed(1) + "x", ok:false });
@@ -2123,9 +2296,29 @@ document.getElementById("seatPlan").addEventListener("change", function(){
   var pl = pick(SEATPLANS, "seatPlan");
   document.getElementById("seat").value = pl.seat;
   document.getElementById("seatBase").value = pl.base;
+  document.getElementById("seatTpm").value = pl.tpm;
   render();
 });
 document.getElementById("quant").addEventListener("change", render);
+
+/* The model table writes its choice into the rail rather than hiding it, so
+   every figure on screen stays traceable to an input you can see and edit. */
+document.getElementById("sec-models").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-usemodel]"); if(!b) return;
+  var val = b.getAttribute("data-usemodel");
+  if(val.indexOf("open:") === 0){
+    document.getElementById("model").value = val.slice(5);
+  } else {
+    for(var i = 0; i < FRONTIER.length; i++){
+      if(FRONTIER[i].id !== val) continue;
+      var f = FRONTIER[i], pre = f.lab === "OpenAI" ? "oa" : "an";
+      document.getElementById(pre + "In").value    = f.pin;
+      document.getElementById(pre + "Out").value   = f.pout;
+      document.getElementById(pre + "Cache").value = f.pcache;
+    }
+  }
+  render();
+});
 
 document.addEventListener("mousemove", function(e){
   var t = e.target.closest ? e.target.closest("[data-tip]") : null;
@@ -2200,20 +2393,20 @@ var syncDrag = bindLever("s-accept", "acceptOpen", function(x){ return x + "%"; 
    reader should never meet a number they would have to translate first. */
 var MODES = {
   overview: { rail:"simple", presets:false,
-    show:["sec-verdict","sec-beyond","sec-export"],
+    show:["sec-verdict","sec-models","sec-beyond","sec-export"],
     kpis:["cheapest","life","quality"] },
   advanced: { rail:"full", presets:true,
-    show:["sec-chart","sec-capacity","sec-sens","sec-cards","sec-export"],
+    show:["sec-verdict","sec-chart","sec-models","sec-capacity","sec-sens","sec-cards","sec-export"],
     kpis:["cheapest","life","priciest","spread","quality"] },
   money:    { rail:"full", presets:true,
-    show:["sec-cash","sec-money","sec-export"],
+    show:["sec-verdict","sec-cash","sec-money","sec-export"],
     kpis:["life","yearone","spread","priciest"] },
   build:    { rail:"full", presets:true,
-    show:["sec-sizing","sec-capacity","sec-bom","sec-export"],
+    show:["sec-verdict","sec-sizing","sec-models","sec-capacity","sec-bom","sec-export"],
     kpis:["cheapest","yearone"] }
 };
 var MODE = "overview";
-var ALLSECS = ["sec-verdict","sec-sizing","sec-capacity","sec-cash","sec-money",
+var ALLSECS = ["sec-verdict","sec-models","sec-sizing","sec-capacity","sec-cash","sec-money",
                "sec-chart","sec-bom","sec-sens","sec-beyond","sec-cards","sec-export"];
 
 function setMode(mode){
