@@ -104,6 +104,11 @@ re-validated for colour-vision-deficiency separation, not a hue picked by eye.
 
 This tool makes an argument about money. Three rules protect it:
 
+0. **Retries are not fresh coin flips.** The funnel separates first pass, repair
+   pass, and the share never solved. Do not collapse it back to
+   `attempts = 1/p` — that assumes a failed task has the same chance next time,
+   which is not how coding agents fail, and it silently deletes the hybrid's
+   whole reason to exist.
 1. **Effectiveness stays derived, and its cost stays visible.** The
    developer-time penalty is computed from first-pass acceptance, never typed in
    as a flat percentage — that was an effectiveness assumption wearing an
@@ -168,6 +173,10 @@ There are no tests. Open `index.html` in a browser and check:
 - Print preview is clean: no rail, no top bar, no export panel, the appendix
   present, and the cash chart sized to the page.
 - The CSV opens in a spreadsheet and every number is a number.
+- Toggling "cost the tasks the agent cannot finish" reorders the routes. If it
+  does not, the fallback term is not reaching the totals.
+- Per-route demand differs between hosted and self-hosted routes in the capacity
+  table. One shared demand figure is the bug that was there before.
 - Dragging a slider stays smooth. Each render runs roughly 200 extra `compute()`
   calls for the break-even scan and sensitivity pass; if you add more, check it.
 - No `NaN`, no `Infinity`, no `$0` where a figure belongs. Setting Developers to

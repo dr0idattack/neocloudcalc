@@ -29,7 +29,7 @@
   --warn:#8a5a06;
   --warn-soft:#fbf1dd;
   --shadow:0 1px 2px rgba(11,18,32,.06), 0 8px 24px -16px rgba(11,18,32,.3);
-  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s7:#4a3aa7;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -42,7 +42,7 @@
     --bad:#e98a7f; --bad-soft:#2c1a16;
     --warn:#dfa63c; --warn-soft:#2a2113;
     --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -18px rgba(0,0,0,.9);
-    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s7:#9085e9;
   }
 }
 :root[data-theme="dark"]{
@@ -55,7 +55,7 @@
   --bad:#e98a7f; --bad-soft:#2c1a16;
   --warn:#dfa63c; --warn-soft:#2a2113;
   --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -18px rgba(0,0,0,.9);
-  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s7:#9085e9;
 }
 
 *{box-sizing:border-box}
@@ -546,7 +546,16 @@ footer b{color:var(--ink-2)}
     <details class="panel" open hidden><summary>Team &amp; workload</summary><div class="fields" id="f-team"></div></details>
     <details class="panel" open hidden><summary>Open-weight model</summary><div class="fields" id="f-model"></div></details>
     <details class="panel" hidden><summary>Effectiveness</summary><div class="fields" id="f-effect"></div></details>
-    <details class="panel" hidden><summary>Money &amp; time</summary><div class="fields" id="f-money"></div></details>
+    <details class="panel" hidden><summary>Money &amp; time</summary><div class="fields" id="f-money"></div>
+      <div class="fields" style="grid-template-columns:1fr">
+        <div class="f"><label class="switch" for="ownsPlatform" style="font-size:11px">
+          <input type="checkbox" id="ownsPlatform"><span class="track"></span>
+          <span>We already run an AI platform \u2014 charge no baseline</span></label></div>
+        <div class="f"><label class="switch" for="countFallback" style="font-size:11px">
+          <input type="checkbox" id="countFallback"><span class="track"></span>
+          <span>Cost the tasks the agent cannot finish</span></label></div>
+      </div>
+    </details>
     <details class="panel" hidden><summary>Accelerators</summary><div class="fields" id="f-gpu"></div></details>
     <details class="panel" hidden><summary>Facility &amp; laptops</summary><div class="fields" id="f-iron"></div></details>
     <details class="panel" hidden><summary>Build &amp; labour</summary><div class="fields" id="f-build"></div></details>
@@ -605,7 +614,7 @@ footer b{color:var(--ink-2)}
       <div class="sechead"><h2>All eight routes</h2></div>
       <table class="ptbl"><thead><tr>
         <th>Route</th><th>Monthly</th><th>Up front</th><th>Full term</th>
-        <th>Per dev / mo</th><th>Per task</th><th>Headroom</th>
+        <th>Per dev / mo</th><th>AI / task</th><th>Unfinished</th><th>Headroom</th>
       </tr></thead><tbody id="p-routes"></tbody></table>
     </section>
 
@@ -710,6 +719,22 @@ var GPUS = [
   {id:"rtx5090",label:"RTX 5090 32GB",    vram:32,  bw:1792, tf:838,  buy:2500,  rent:0.70, w:575}
 ];
 
+/* Effectiveness profiles. Anchored on SWE-bench Pro pass@1, which spans roughly
+   27% to 60% and is far from saturated, and on reported real-world first-pass
+   rates of 35-50% on production codebases. These are planning assumptions, not
+   measurements of your repositories — which is why Custom exists and why the
+   sensitivity pass marks them as able to flip the answer. */
+var PROFILES = [
+  {id:"observed",     label:"Observed \u2014 production estimates",
+   acceptFrontier:45, acceptOpen:34, repairFrontier:35, repairOpen:30, hardFrontier:5,  hardOpen:12},
+  {id:"optimistic",   label:"Optimistic \u2014 top of SWE-bench Pro",
+   acceptFrontier:58, acceptOpen:48, repairFrontier:40, repairOpen:35, hardFrontier:3,  hardOpen:8},
+  {id:"conservative", label:"Conservative \u2014 hard, unfamiliar repos",
+   acceptFrontier:36, acceptOpen:25, repairFrontier:28, repairOpen:22, hardFrontier:10, hardOpen:22},
+  {id:"custom",       label:"Custom \u2014 your own measurements",
+   acceptFrontier:0,  acceptOpen:0,  repairFrontier:0,  repairOpen:0,  hardFrontier:0,  hardOpen:0}
+];
+
 /* Per-seat plans. base is a platform seat the plan rides on: GitHub Copilot
    Enterprise needs a GitHub Enterprise Cloud seat, which many buyers already
    hold — hence the entitlement switch, which drops it. */
@@ -749,8 +774,14 @@ var GROUPS = {
   "f-effect": [
     ["tasksDay","Accepted tasks / dev / day","",5,1],
     ["minPerAttempt","Developer minutes per attempt","min",8,1],
+    ["maxRetries","Repair attempts before giving up","",2,1],
+    ["minPerHumanTask","Minutes to write it by hand","min",45,5],
     ["acceptFrontier","Frontier first-pass acceptance","%",45,1],
-    ["acceptOpen","Open-model first-pass acceptance","%",34,1]
+    ["acceptOpen","Open first-pass acceptance","%",34,1],
+    ["repairFrontier","Frontier repair success","%",35,1],
+    ["repairOpen","Open repair success","%",30,1],
+    ["hardFrontier","Frontier never solves","%",5,1],
+    ["hardOpen","Open never solves","%",12,1]
   ],
   "f-gpu": [
     ["gpuBuy","Purchase price / card","$",31000,500],
@@ -844,6 +875,7 @@ Object.keys(GROUPS).forEach(function(id){
   }).join("");
   if(id === "f-model") html = selectHTML("model","Model", MODELS, "gptoss120") + selectHTML("quant","Weight precision", QUANTS, "fp8") + html;
   if(id === "f-gpu")   html = selectHTML("gpu","Accelerator", GPUS, "h100") + html;
+  if(id === "f-effect") html = selectHTML("profile","Effectiveness profile", PROFILES, "observed") + html;
   if(id === "f-rates") html = selectHTML("seatPlan","Per-seat plan", SEATPLANS, "cursorp")
     + '<div class="f wide"><label class="switch" for="ownsBase" style="font-size:11px">'
     + '<input type="checkbox" id="ownsBase"><span class="track"></span>'
@@ -953,54 +985,121 @@ function compute(){
   var fresh  = inTok - cached;
   var fteMo  = v("fteCost") / 12;
 
-  /* ── effectiveness ──────────────────────────────────────────────────
-     The old model charged a flat "open-model time penalty", which was an
-     effectiveness assumption wearing an infrastructure costume. This derives
-     it instead, from what actually differs: how often a first attempt is
-     accepted. Published real-world first-pass rates on production codebases
-     run 35-50% for the best agent harnesses, well under benchmark scores.
+  /* ── effectiveness: the failure path, not just first pass ───────────
+     An earlier version used attempts = 1 / firstPassAcceptance, which assumes
+     every retry is a fresh Bernoulli trial at the same probability. Coding
+     agents do not behave that way. Benchmark pass@1 is measured across
+     independent rollouts, not as the chance a failed task succeeds next time,
+     and some tasks are simply beyond a given model — one reported case went
+     0-for-64 across every configuration tried.
 
-     Two consequences fall out, and the second is easy to miss. A weaker model
-     needs more attempts per accepted task, so it costs more developer minutes
-     AND burns more tokens for the same shipped work. Holding accepted output
-     constant is the only fair comparison. */
-  var aF = Math.max(1, Math.min(100, v("acceptFrontier"))) / 100;
-  var aO = Math.max(1, Math.min(100, v("acceptOpen"))) / 100;
-  var attemptsF = 1 / aF, attemptsO = 1 / aO;
-  var openTokenMult = attemptsO / attemptsF;
+     So the funnel below separates three things: the first pass, a repair pass
+     that is worse than the first because the easy wins are gone, and a share
+     the model never solves however many times you ask. Attempts are spent on
+     the hopeless share too, which is exactly why retry budgets cost money. */
+  function funnel(p1, pRepair, hard, retries){
+    var pool = 1, accepted = 0, attempts = 0;
+    attempts += pool;
+    var got = pool * p1; accepted += got; pool -= got;
+    for(var r = 0; r < retries; r++){
+      if(pool <= 1e-9) break;
+      attempts += pool;                       /* you retry the hopeless ones too */
+      var solvable = Math.max(0, pool - hard);
+      got = solvable * pRepair; accepted += got; pool -= got;
+    }
+    return {accepted:accepted, unresolved:pool, attempts:attempts};
+  }
+  function pc(id){ return Math.max(0, Math.min(100, v(id))) / 100; }
 
-  var extraMinPerTask = v("minPerAttempt") * (attemptsO - attemptsF);
-  var dragHours = devs * v("tasksDay") * days * extraMinPerTask / 60;
-  var dragCost  = dragHours * v("devRate");
+  var retries = Math.max(0, Math.round(v("maxRetries")));
+  var F = funnel(pc("acceptFrontier"), pc("repairFrontier"), pc("hardFrontier"), retries);
+  var O = funnel(pc("acceptOpen"),     pc("repairOpen"),     pc("hardOpen"),     retries);
+
+  /* Hybrid: the open model tries first, whatever it cannot finish escalates to
+     the frontier. Two independent shots, so it clears MORE than either alone. */
+  var esc = O.unresolved;
+  var H = {
+    accepted:   O.accepted + esc * F.accepted,
+    unresolved: esc * F.unresolved,
+    openAtt:    O.attempts,
+    frontAtt:   esc * F.attempts
+  };
+
+  function per(x, n){ return n > 0 ? x / n : 0; }
+  var frontierAtt = per(F.attempts, F.accepted);          /* the yardstick */
+  var EFF = {
+    frontier: {att:frontierAtt, openAtt:0, frontAtt:frontierAtt,
+               unres:per(F.unresolved, F.accepted)},
+    open:     {att:per(O.attempts, O.accepted), openAtt:per(O.attempts, O.accepted), frontAtt:0,
+               unres:per(O.unresolved, O.accepted)},
+    hybrid:   {att:per(H.openAtt + H.frontAtt, H.accepted),
+               openAtt:per(H.openAtt, H.accepted), frontAtt:per(H.frontAtt, H.accepted),
+               unres:per(H.unresolved, H.accepted)}
+  };
+
+  /* Token volume scales with attempts, against the frontier-only yardstick. */
+  Object.keys(EFF).forEach(function(k){
+    EFF[k].tokenMult      = frontierAtt > 0 ? EFF[k].att / frontierAtt : 1;
+    EFF[k].ownTokenMult   = frontierAtt > 0 ? EFF[k].openAtt / frontierAtt : 0;
+    EFF[k].apiTokenMult   = frontierAtt > 0 ? EFF[k].frontAtt / frontierAtt : 0;
+  });
+
+  /* Charge only the DIFFERENTIAL developer time, against whichever route needs
+     the fewest minutes. Ordinary review and engineering labour exists on every
+     route and is not this tool's to count — which is why the per-task figure is
+     labelled AI cost per accepted task, not effective cost per accepted task. */
+  var costFallback = !!(document.getElementById("countFallback") || {}).checked;
+  var minsOf = function(e){
+    return e.att * v("minPerAttempt") + (costFallback ? e.unres * v("minPerHumanTask") : 0);
+  };
+  var baseMins = Math.min(minsOf(EFF.frontier), minsOf(EFF.open), minsOf(EFF.hybrid));
+  function dragFor(e){
+    var extraMin = Math.max(0, minsOf(e) - baseMins);
+    return devs * v("tasksDay") * days * extraMin / 60 * v("devRate");
+  }
   var codingHours = devs * v("codeHrs") * days;
   var acceptedTasksMo = devs * v("tasksDay") * days;
-  var dragPct = codingHours > 0 ? dragHours / codingHours * 100 : 0;
+  function pctOf(e){
+    var h = devs * v("tasksDay") * days * Math.max(0, minsOf(e) - baseMins) / 60;
+    return codingHours > 0 ? h / codingHours * 100 : 0;
+  }
+  var dragPct = pctOf(EFF.open);
+  var dragHours = devs * v("tasksDay") * days
+                * Math.max(0, minsOf(EFF.open) - baseMins) / 60;
+  var openTokenMult = EFF.open.tokenMult;
 
   /* Negotiated rates apply to metered tokens, never to seats. */
   var disc = Math.max(0, 1 - v("apiDiscount") / 100);
-  function tokens(i, o, c){
-    return ((fresh/1e6)*i + (cached/1e6)*c + (outTok/1e6)*o) * disc;
+  function tokens(i, o, c, mult){
+    var m = mult === undefined ? 1 : mult;
+    return (((fresh * m)/1e6)*i + ((cached * m)/1e6)*c + ((outTok * m)/1e6)*o) * disc;
   }
 
   /* Self-hosted routes serve the larger token volume, because the open model
-     needs more attempts to ship the same work. */
-  var outTokOwn = outTok * openTokenMult, inTokOwn = inTok * openTokenMult;
+     needs more attempts to ship the same accepted work. */
+  var outTokOwn = outTok * openTokenMult;
 
   /* Size the fleet on output tokens in the busy hour — decode is where the
      accelerators actually spend their time. */
-  var peakTps = (days > 0 && v("activeHrs") > 0)
-    ? (outTokOwn / days / (v("activeHrs") * 3600)) * v("peak") : 0;
+  function peakFor(mult){
+    return (days > 0 && v("activeHrs") > 0)
+      ? (outTok * mult / days / (v("activeHrs") * 3600)) * v("peak") : 0;
+  }
+  var peakTps = peakFor(openTokenMult);
 
   var s = size(peakTps, openTokenMult);
   if(devs === 0){ s.gpus = 0; s.replicas = 0; }
 
   /* An agentic coding session is a near-continuous stream of output tokens
-     while the developer is working. This is the rate one session pulls. */
+     while the developer is working. This is the rate one session pulls at the
+     frontier yardstick; a weaker model pulls MORE for the same accepted work,
+     so demand is per-route, not one figure shared by all of them. Using the
+     unadjusted number everywhere flattered exactly the routes whose fleets the
+     cost model had already grown. */
   var sessTps = v("codeHrs") > 0 ? (v("outTok") * 1000) / (v("codeHrs") * 3600) : 0;
   var liveSessions = devs * (v("sessConc") / 100);
-  var demandTps = liveSessions * sessTps;
+  var demandTps = liveSessions * sessTps;              /* frontier yardstick */
 
-  /* One laptop serves one session, at whatever its memory bus allows. */
   var lapTps = (v("lapBw") / Math.max(0.001, s.m.active * s.q.bytes)) * (v("bwEff") / 100);
   var fleetTps = s.replicas * s.replicaTps;
 
@@ -1033,7 +1132,8 @@ function compute(){
      was a fairness bug rather than a modelling choice. Laptops are exempt:
      nothing is centralised. Bedrock, Azure and self-hosting pay this PLUS
      their own incremental team. */
-  var platformMo  = labourOn() ? v("platformFte") * fteMo : 0;
+  var ownsPlat    = !!(document.getElementById("ownsPlatform") || {}).checked;
+  var platformMo  = (labourOn() && !ownsPlat) ? v("platformFte") * fteMo : 0;
 
   /* Renting skips the hardware but not the bring-up: you still stand up the
      serving stack, evaluate the model and pass a security review. */
@@ -1047,6 +1147,25 @@ function compute(){
     rentSetup:rentSetup, storMo:storMo, fleetKw:fleetKw
   };
 
+  /* The hybrid fleet only serves the open tier, so it is sized on that share
+     alone. Buying or renting it is the buyer's choice; take whichever is
+     cheaper and say which. */
+  var hs = size(peakFor(EFF.hybrid.ownTokenMult), EFF.hybrid.ownTokenMult);
+  if(devs === 0){ hs.gpus = 0; hs.replicas = 0; }
+  var hHosts = Math.ceil(hs.gpus / 8);
+  var hKw = hs.gpus * v("gpuW") / 1000 * 1.25;
+  var hHwCapex = hs.gpus * v("gpuBuy") * (1 + v("spares")/100)
+               + hHosts * (v("hostCost") + v("netFabric") + v("installHost"));
+  var hStorMo = hs.storageGb * v("storGb");
+  var hybridFleetCapex = hHwCapex / amort;
+  var hybridFleetPower = hKw * v("pue") * 730 * v("kwhDc") + hKw * v("coloKw") + hStorMo
+                       + hHwCapex * (v("warranty")/100) / 12;
+  var hybridRentMo = hs.gpus * v("gpuRent") * 730 * (v("rentUtil")/100);
+  var hybridFleetTps = hs.replicas * hs.replicaTps;
+  var hybridBuyTotal  = hybridFleetCapex + hybridFleetPower + setupLabour / amort;
+  var hybridRentTotal = hybridRentMo + hStorMo + rentSetup / amort;
+  var hybridBuy = hybridBuyTotal <= hybridRentTotal;
+
   var rows = [
     { id:"laptop", name:"Local model on laptops", group:"Your own hardware",
       note: s.fitsLaptop
@@ -1056,7 +1175,7 @@ function compute(){
       capex: devs * v("lapUplift") / amort,
       power: devs * (v("lapWatts")/1000) * v("codeHrs") * days * v("kwhOffice"),
       people: labourOn() ? devs * (v("lapSupport")/12) * v("itRate") : 0,
-      usage: 0, drag: dragCost,
+      usage: 0, drag: dragFor(EFF.open), eff: EFF.open,
       capTps: devs * lapTps, unitTps: lapTps, perDevScale: true, scaling:"One laptop, one session. Adding developers adds laptops, so it never runs out — it is just slow." },
 
     { id:"buy", name:"GPUs you buy", group:"Your own hardware",
@@ -1066,7 +1185,7 @@ function compute(){
       capex: hwCapex / amort,
       power: fleetKw * v("pue") * 730 * v("kwhDc") + fleetKw * v("coloKw") + storMo + warrantyMo,
       people: platformMo + adminMo + setupLabour / amort,
-      usage: 0, drag: dragCost,
+      usage: 0, drag: dragFor(EFF.open), eff: EFF.open,
       capTps: fleetTps, scaling:"Fixed ceiling. Past it you buy another replica and wait months for delivery." },
 
     { id:"rent", name:"GPUs you rent by the hour", group:"Your own hardware",
@@ -1076,37 +1195,51 @@ function compute(){
       power: storMo,
       people: platformMo + adminMo + rentSetup / amort,
       usage: s.gpus * v("gpuRent") * 730 * (v("rentUtil")/100),
-      drag: dragCost,
+      drag: dragFor(EFF.open), eff: EFF.open,
       capTps: fleetTps, scaling:"Same ceiling as buying, but you can add replicas in minutes — if the region has stock." },
 
     { id:"bedrock", name:"AWS Bedrock", group:"Cloud platform",
       note:"Frontier model inside your AWS account. Same token rate as going direct, plus the people who wire up VPC, IAM and logging.",
       upfront:0, capex:0, power:0, people: platformMo + cloudOpsMo,
-      usage: tokens(v("bedIn"), v("bedOut"), v("bedCache")), drag:0,
+      usage: tokens(v("bedIn"), v("bedOut"), v("bedCache")), drag: dragFor(EFF.frontier), eff: EFF.frontier,
       capTps: v("bedTpm") * 1000 / 60, scaling:"Bounded by your account quota. Raising it is a support ticket, not a purchase order." },
 
     { id:"azure", name:"Azure OpenAI", group:"Cloud platform",
       note:"Frontier model inside your Azure tenant. Same trade as Bedrock: enterprise plumbing costs people, not tokens.",
       upfront:0, capex:0, power:0, people: platformMo + cloudOpsMo,
-      usage: tokens(v("azIn"), v("azOut"), v("azCache")), drag:0,
+      usage: tokens(v("azIn"), v("azOut"), v("azCache")), drag: dragFor(EFF.frontier), eff: EFF.frontier,
       capTps: v("azTpm") * 1000 / 60, scaling:"Bounded by your deployment quota per region. Add regions to add headroom." },
 
     { id:"anthropic", name:"Anthropic API", group:"Direct from the lab",
       note:"Claude, billed per token, nothing in between. Cache rate is the lever — every point of it comes straight off the bill.",
       upfront:0, capex:0, power:0, people: platformMo,
-      usage: tokens(v("anIn"), v("anOut"), v("anCache")), drag:0,
+      usage: tokens(v("anIn"), v("anOut"), v("anCache")), drag: dragFor(EFF.frontier), eff: EFF.frontier,
       capTps: v("anTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
 
     { id:"openai", name:"OpenAI API", group:"Direct from the lab",
       note:"GPT, billed per token, nothing in between. Cheaper per token at list; judge it on tokens burned per finished task.",
       upfront:0, capex:0, power:0, people: platformMo,
-      usage: tokens(v("oaIn"), v("oaOut"), v("oaCache")), drag:0,
+      usage: tokens(v("oaIn"), v("oaOut"), v("oaCache")), drag: dragFor(EFF.frontier), eff: EFF.frontier,
       capTps: v("oaTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
+
+    { id:"hybrid", name:"Open model, frontier fallback", group:"Hybrid",
+      note:"The open model tries first; whatever it cannot finish escalates to the frontier API. Two independent shots, so it finishes more than either alone \u2014 "
+        + Math.round(EFF.hybrid.unres * 100) + "% of accepted tasks still need a person, against "
+        + Math.round(EFF.frontier.unres * 100) + "% on frontier alone.",
+      upfront: hybridBuy ? buyUpfront : rentSetup,
+      capex: hybridBuy ? hybridFleetCapex : 0,
+      power: hybridBuy ? hybridFleetPower : storMo,
+      people: platformMo + adminMo + (hybridBuy ? setupLabour : rentSetup) / amort,
+      usage: (hybridBuy ? 0 : hybridRentMo)
+           + tokens(v("anIn"), v("anOut"), v("anCache"), EFF.hybrid.apiTokenMult),
+      drag: dragFor(EFF.hybrid), eff: EFF.hybrid,
+      capTps: hybridFleetTps,
+      scaling:"Two ceilings: your own fleet for the first pass, an API quota for the escalations. The API tier absorbs bursts the fleet cannot." },
 
     { id:"seats", name:"Flat per-seat plans", group:"Direct from the lab",
       note:"One price per developer per month. Heavy users hit limits; in exchange the bill stops surprising you.",
       upfront:0, capex:0, power:0, people: platformMo,
-      usage: devs * (v("seat") + (document.getElementById("ownsBase") && document.getElementById("ownsBase").checked ? 0 : v("seatBase"))), drag:0,
+      usage: devs * (v("seat") + (document.getElementById("ownsBase") && document.getElementById("ownsBase").checked ? 0 : v("seatBase"))), drag: dragFor(EFF.frontier), eff: EFF.frontier,
       capTps: devs * v("seatTpm") / 60, unitTps: v("seatTpm") / 60, perDevScale: true, scaling:"Scales one seat at a time, but each seat has its own cap — heavy agents hit it." }
   ];
 
@@ -1125,16 +1258,24 @@ function compute(){
     r.cashAt = function(m){ return r.upfront + r.monthlyCash * m; };
     r.yearOne = r.upfront + r.monthlyCash * Math.min(12, horizon);
     r.lifeCash = r.upfront + r.monthlyCash * horizon;
+    /* A session on this route pulls sessTps scaled by the token volume this
+       route's OWN serving has to carry. Hosted routes sit at the yardstick;
+       self-hosted ones carry the open model's extra attempts; the hybrid's
+       own fleet carries only its open tier. */
+    var ownMult = r.eff ? (r.id === "hybrid" ? r.eff.ownTokenMult : r.eff.tokenMult) : 1;
+    if(ownMult <= 0) ownMult = 1;
+    r.routeSessTps = sessTps * ownMult;
+    r.demandTps = liveSessions * r.routeSessTps;
     if(r.perDevScale){
       /* One laptop, or one seat, per developer. Capacity grows with the team;
          the real question is whether a single unit keeps up with one session. */
       r.sessions = devs;
       r.devsHeld = null;
-      r.headroom = sessTps > 0 ? r.unitTps / sessTps : 0;
+      r.headroom = r.routeSessTps > 0 ? r.unitTps / r.routeSessTps : 0;
     } else {
-      r.sessions = sessTps > 0 ? r.capTps / sessTps : 0;
+      r.sessions = r.routeSessTps > 0 ? r.capTps / r.routeSessTps : 0;
       r.devsHeld = v("sessConc") > 0 ? r.sessions / (v("sessConc")/100) : 0;
-      r.headroom = demandTps > 0 ? r.capTps / demandTps : 0;
+      r.headroom = r.demandTps > 0 ? r.capTps / r.demandTps : 0;
     }
   });
   /* The question behind the whole tool: self-hosting is cheaper on paper by
@@ -1154,8 +1295,9 @@ function compute(){
   rows.sort(function(a,b){ return a.total - b.total; });
   return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps, bom:BOM,
            amort:amort, labour:labourOn(), platformMo:platformMo,
-           attemptsF:attemptsF, attemptsO:attemptsO, openTokenMult:openTokenMult,
-           acceptedTasksMo:acceptedTasksMo,
+           EFF:EFF, openTokenMult:openTokenMult, costFallback:costFallback,
+           acceptedTasksMo:acceptedTasksMo, hybridBuy:hybridBuy, hybridSize:hs,
+           attemptsF:frontierAtt, attemptsO:EFF.open.att,
            dragHours:dragHours, dragPct:dragPct,
            qualityBudget:qualityBudget, qualityPct:qualityPct, dragSet:dragPct,
            sessTps:sessTps, liveSessions:liveSessions, demandTps:demandTps, lapTps:lapTps };
@@ -1208,7 +1350,10 @@ function render(){
     + sz(s.ttft < 1 ? Math.round(s.ttft * 1000) + " ms" : s.ttft.toFixed(1) + " s",
          "Time to first token", v("ctxK") + "k cold prefill, nothing cached")
     + sz(s.tokenMult.toFixed(2) + " x", "Token volume vs frontier",
-         "more attempts per accepted task");
+         d.EFF.open.att.toFixed(2) + " attempts per accepted task")
+    + sz(Math.round(d.EFF.open.unres * 100) + "%", "Open model gives up",
+         "against " + Math.round(d.EFF.frontier.unres * 100) + "% frontier, "
+         + Math.round(d.EFF.hybrid.unres * 100) + "% hybrid");
 
   document.getElementById("fitflag").innerHTML = s.fitsLaptop
     ? '<div class="flag ok"><b>Fits a laptop.</b> ' + s.m.label + ' at ' + s.q.label + ' lands in about '
@@ -1276,7 +1421,8 @@ function render(){
       + '<div class="big mono">' + money(r.total) + ' <small>/ month</small></div>'
       + '<div class="subs"><span><b class="mono">' + money(r.life) + '</b> over ' + d.horizon + ' mo</span>'
       + '<span><b class="mono">' + money(r.perDev) + '</b> / dev / mo</span>'
-      + '<span><b class="mono">' + money(r.perTask) + '</b> / accepted task</span>'
+      + '<span><b class="mono">' + money(r.perTask) + '</b> AI cost / task</span>'
+      + '<span><b class="mono">' + Math.round((r.eff ? r.eff.unres : 0) * 100) + '%</b> need a person</span>'
       + '<span><b class="mono">' + num(r.sessions) + '</b> live sessions</span></div>'
       + '<div class="lines">' + lines + '</div>'
       + '<p class="note">' + r.note + ' <b style="color:var(--ink-2)">Scale:</b> ' + r.scaling + '</p></article>';
@@ -1304,7 +1450,7 @@ function render(){
 
 
 /* ═══ cash, break-even, BOM, sensitivity, non-cost factors ════════════════ */
-var OWN = {laptop:1, buy:1, rent:1};
+var OWN = {laptop:1, buy:1, rent:1, hybrid:1};
 function byId(d, id){ for(var i=0;i<d.rows.length;i++) if(d.rows[i].id === id) return d.rows[i]; return null; }
 function cheapestHosted(d){
   var best = null;
@@ -1324,10 +1470,11 @@ function renderCash(d){
   var host = document.getElementById("cashchart");
   var W = Math.max(280, Math.round(host.clientWidth)), H = 290;
   var padL = 58, padR = W > 620 ? 132 : 14, padT = 12, padB = 32;
-  var hosted = cheapestHosted(d), buy = byId(d, "buy"), rent = byId(d, "rent");
+  var hosted = cheapestHosted(d), buy = byId(d, "buy"), rent = byId(d, "rent"), hyb = byId(d, "hybrid");
   var series = [
     {r:buy,    name:"GPUs you buy",  c:"var(--s1)"},
     {r:rent,   name:"GPUs you rent", c:"var(--s3)"},
+    {r:hyb,    name:"Hybrid",        c:"var(--s7)"},
     {r:hosted, name:hosted.name,     c:"var(--s2)"}
   ];
   var maxY = 0;
@@ -1416,7 +1563,11 @@ function renderCash(d){
 function breakEvenDevs(equalQuality){
   for(var n = 5; n <= 2000; n += (n < 100 ? 5 : 25)){
     var ov = {devs:n};
-    if(equalQuality) ov.acceptOpen = v("acceptFrontier");
+    if(equalQuality){
+      ov.acceptOpen    = v("acceptFrontier");
+      ov.repairOpen    = v("repairFrontier");
+      ov.hardOpen      = v("hardFrontier");
+    }
     var o = withOv(ov, compute);
     var own = Math.min(byId(o, "buy").lifeCash, byId(o, "rent").lifeCash);
     if(own < cheapestHosted(o).lifeCash) return n;
@@ -1547,7 +1698,8 @@ var BEYOND = {
   azure:     ["Your Azure tenant", "Days", "Swap the endpoint", ["a","Part of one"]],
   anthropic: ["Vendor's API under their terms", "Hours", "Swap the endpoint", ["g","No"]],
   openai:    ["Vendor's API under their terms", "Hours", "Swap the endpoint", ["g","No"]],
-  seats:     ["Vendor's service under their terms", "Hours", "Cancel the seats", ["g","No"]]
+  seats:     ["Vendor's service under their terms", "Hours", "Cancel the seats", ["g","No"]],
+  hybrid:    ["Most stays in; hard cases go to the vendor", "Weeks", "Drop the open tier, keep the API", ["r","Yes, platform team"]]
 };
 function renderBeyond(d){
   document.getElementById("beyondbody").innerHTML = d.rows.map(function(r){
@@ -1589,6 +1741,7 @@ function renderPrint(d){
       + '<td>' + exact(r.lifeCash) + '</td>'
       + '<td>' + exact(r.perDev) + '</td>'
       + '<td>' + money(r.perTask) + '</td>'
+      + '<td>' + Math.round((r.eff ? r.eff.unres : 0) * 100) + '%</td>'
       + '<td>' + (r.headroom >= 10 ? "10x+" : r.headroom.toFixed(1) + "x") + '</td></tr>';
   }).join("");
 
@@ -1631,6 +1784,9 @@ function buildCsv(d){
   L.push([q("Weight precision"), q(plain(d.s.q.label)), ""].join(","));
   L.push([q("Accelerator"), q(plain(d.s.g.label)), ""].join(","));
   L.push([q("Labour counted"), q(d.labour ? "yes" : "no"), ""].join(","));
+  L.push([q("Unfinished tasks costed"), q(d.costFallback ? "yes" : "no"), ""].join(","));
+  L.push([q("Effectiveness profile"), q(plain(pick(PROFILES, "profile").label)), ""].join(","));
+  L.push([q("Hybrid open tier"), q(d.hybridBuy ? "bought" : "rented"), ""].join(","));
   L.push("");
 
   L.push(q("SIZING"));
@@ -1650,12 +1806,15 @@ function buildCsv(d){
 
   L.push(q("ROUTE COMPARISON"));
   L.push(["route", "group", "monthly", "up front", "cash over " + d.horizon + " months",
-          "per dev per month", "per accepted task", "per 1M output", "live sessions", "developers", "headroom x",
+          "per dev per month", "AI cost per accepted task", "attempts per accepted task",
+          "share needing a person", "per 1M output", "live sessions", "developers", "headroom x",
           "hardware", "power rack storage", "people", "tokens seats rent", "developer time lost"
          ].map(q).join(","));
   d.rows.forEach(function(r){
     L.push([q(r.name), q(r.group), Math.round(r.total), Math.round(r.upfront), Math.round(r.lifeCash),
             Math.round(r.perDev), Math.round(r.perTask * 100) / 100,
+            r.eff ? Math.round(r.eff.att * 100) / 100 : "",
+            r.eff ? Math.round(r.eff.unres * 1000) / 10 : "",
             Math.round(r.perMOut * 100) / 100, Math.round(r.sessions),
             r.devsHeld === null ? q("scales 1:1") : Math.round(r.devsHeld),
             Math.round(r.headroom * 100) / 100,
@@ -1761,8 +1920,11 @@ function sz(val, k, n){
 }
 
 /* ═══ behaviours ══════════════════════════════════════════════════════════ */
+var EFFIDS = {acceptFrontier:1, acceptOpen:1, repairFrontier:1, repairOpen:1, hardFrontier:1, hardOpen:1};
 document.addEventListener("input", function(e){
-  if(e.target.tagName === "INPUT") render();
+  if(e.target.tagName !== "INPUT") return;
+  if(EFFIDS[e.target.id]) document.getElementById("profile").value = "custom";
+  render();
 });
 document.getElementById("labour").addEventListener("change", render);
 var rt;
@@ -1781,6 +1943,15 @@ document.getElementById("gpu").addEventListener("change", function(){
 });
 document.getElementById("model").addEventListener("change", render);
 document.getElementById("ownsBase").addEventListener("change", render);
+document.getElementById("ownsPlatform").addEventListener("change", render);
+document.getElementById("countFallback").addEventListener("change", render);
+document.getElementById("profile").addEventListener("change", function(){
+  var pr = pick(PROFILES, "profile");
+  if(pr.id === "custom") return;                 /* Custom leaves the fields alone */
+  ["acceptFrontier","acceptOpen","repairFrontier","repairOpen","hardFrontier","hardOpen"]
+    .forEach(function(k){ document.getElementById(k).value = pr[k]; });
+  render();
+});
 document.getElementById("seatPlan").addEventListener("change", function(){
   var pl = pick(SEATPLANS, "seatPlan");
   document.getElementById("seat").value = pl.seat;

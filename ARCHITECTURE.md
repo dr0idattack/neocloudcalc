@@ -204,18 +204,73 @@ Earlier versions charged a flat "open-model time penalty" percentage. That was a
 mechanism. It is now derived from the thing that actually differs between models:
 how often a first attempt is accepted.
 
-```
-attemptsF = 1 / frontier_first_pass_acceptance
-attemptsO = 1 / open_first_pass_acceptance
+`attempts = 1 / firstPassAcceptance` was the first version of this, and it is
+wrong. It assumes every retry is an independent Bernoulli trial at the same
+probability. Benchmark pass@1 is measured across independent rollouts, not as the
+chance a *failed* task succeeds next time, and some tasks are beyond a given
+model entirely — one reported case went 0-for-64 across every configuration.
 
-extraMinutesPerTask = minutes_per_attempt × (attemptsO − attemptsF)
-dragHours           = devs × accepted_tasks_per_day × working_days × extraMinutesPerTask / 60
-dragCost            = dragHours × loaded_hourly_rate
-dragPct             = dragHours / (devs × hours_in_tool × working_days) × 100
+The funnel separates three things per tier:
+
+```
+funnel(p1, pRepair, hard, retries):
+    pool = 1, accepted = 0, attempts = 0
+    attempts += pool;  got = pool × p1;  accepted += got;  pool −= got
+    repeat `retries` times:
+        attempts += pool                      # the hopeless share is retried too
+        solvable  = max(0, pool − hard)
+        got = solvable × pRepair;  accepted += got;  pool −= got
+    → {accepted, unresolved, attempts}
 ```
 
-`dragPct` is now an **output**, shown live under the Simple-mode slider and in
+`hard` is the share the tier never solves however many times you ask, which is
+what makes retry budgets cost money without buying anything.
+
+**Hybrid** runs the open funnel, then the frontier funnel on whatever is left:
+
+```
+escalated  = open.unresolved
+accepted   = open.accepted + escalated × frontier.accepted
+unresolved = escalated × frontier.unresolved
+```
+
+Two independent shots, so the hybrid finishes **more** than either tier alone —
+about 11% unresolved against 26% for the frontier by itself at the defaults.
+
+Per accepted task, each route reports `att` (attempts, split into open and
+frontier tiers) and `unres` (the share still needing a person). Token volume
+scales with attempts against the frontier-only yardstick:
+
+```
+tokenMult    = route.attemptsPerAccepted / frontierAttemptsPerAccepted
+ownTokenMult = route.openAttemptsPerAccepted / frontierAttemptsPerAccepted
+```
+
+Drag is the **differential** developer time against whichever route needs the
+fewest minutes, never the absolute:
+
+```
+minutes(route) = att × minutes_per_attempt
+               + (costFallback ? unres × minutes_to_write_by_hand : 0)
+drag = devs × tasks_per_day × days × max(0, minutes(route) − min over routes) / 60 × rate
+```
+
+**The fallback switch is off by default and that is a judgement call.** Costing
+the tasks the agent cannot finish is the more complete model, and it changes the
+answer dramatically — the hybrid goes from sixth cheapest to first by a factor of
+three. But 45 minutes of hand-written code is a much softer number than a token
+price, and letting it in by default would let the softest input in the model
+swamp the best-sourced parts of it. Off, the unresolved rate is still reported
+everywhere; on, it is priced. The user decides which model they are running.
+
+`dragPct` is an **output**, shown live under the Simple-mode slider and in
 every export, so the intuition the old field gave survives the change.
+
+Profiles (`PROFILES`) set all six effectiveness fields at once, anchored on
+SWE-bench Pro pass@1 — which spans roughly 27–60% and is far from saturated,
+making it a better guide than the near-saturated Verified. Editing any of the six
+drops the selector to Custom, so a profile label never describes numbers it did
+not set.
 
 **A weaker model costs twice.** More attempts per accepted task means more
 developer minutes *and* more tokens for the same shipped work:
@@ -228,9 +283,13 @@ Own-hardware routes are sized and billed on `tokens × openTokenMultiplier`,
 because holding **accepted output** constant is the only fair comparison. At the
 defaults that is 1.32×, and it feeds straight into fleet sizing.
 
-Every route also reports `perTask = total / accepted_tasks_per_month`. Accepted
-tasks are constant across routes by construction, so **cost per accepted task is
-comparable in a way cost per developer per month is not.**
+Every route reports `perTask = total / accepted_tasks_per_month`, labelled **AI
+cost per accepted task** rather than effective cost per accepted task. The
+distinction is deliberate: it carries the AI spend and the *differential*
+developer time, not the fully loaded cost of shipping the change. Ordinary review
+and engineering labour exists on every route and is not this tool's to count.
+Accepted output is constant across routes by construction, so the figure is
+comparable in a way cost per developer per month is not.
 
 What this does *not* do is remove the uncertainty — it relocates it. Acceptance
 rates are far less knowable than token prices, and a modelled number can hide a
@@ -247,7 +306,12 @@ a fairness bug, not a modelling choice.
 
 Laptops are exempt: nothing is centralised. Bedrock, Azure and the self-hosted
 routes pay this baseline **plus** their own incremental team (`cloudOps` and
-`adminFte` respectively).
+`adminFte` respectively) — shared fixed cost plus workload-specific increment,
+which is the shape large organisations actually experience.
+
+A fixed baseline bites hardest at small scale, and many organisations already run
+a gateway serving many workloads. The **entitlement switch** zeroes it; to model
+an allocated share instead, lower the FTE rather than switching it off.
 
 ### The eight routes
 
@@ -397,6 +461,18 @@ deliver.
 | Flat per-seat plans | `devs × per-seat ceiling / 60` |
 
 ### Two kinds of scaling
+
+Demand is **per route**, not one shared figure. A session on a weaker model pulls
+more tokens for the same accepted work, so:
+
+```
+routeSessTps = sessTps × (hybrid ? ownTokenMult : tokenMult)
+demandTps    = liveSessions × routeSessTps
+```
+
+Using the unadjusted number for every route was a real bug: it flattered exactly
+the routes whose fleets the cost model had already grown, and it made laptop
+headroom read 4.2× when the same assumptions said 3.1×.
 
 **Pooled routes** (servers, APIs) share one ceiling:
 
