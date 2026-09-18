@@ -78,6 +78,16 @@ downstream — sorting, ranking, chart, cards, capacity table — picks it up.
 If the route scales one unit per developer rather than sharing a pool, set
 `perDevScale: true` and `unitTps`. See `ARCHITECTURE.md` §5.
 
+**A route that sizes its own fleet must pay for its own fleet.** The hybrid
+shipped charging `buyUpfront` — the standalone fleet's cheque — while buying
+only its own smaller one. At the defaults both fleets happened to be the same
+size and renting won anyway, so the wrong branch never ran and nothing looked
+amiss; at 1,200 developers with buying favoured it overcharged by $321k, 35%.
+When you add a route with its own `size()` call, give it its own capex, its own
+power, and its own `upfront`, and test it at a scale where its fleet differs
+from the standalone one. A financial bug that hides at the default settings is
+the worst kind this tool can have.
+
 ### A new cost component
 
 Add it to `COMPONENTS` **and** give every route a value for it. A route missing a

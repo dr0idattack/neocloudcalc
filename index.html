@@ -611,7 +611,7 @@ footer b{color:var(--ink-2)}
     </section>
 
     <section class="printonly">
-      <div class="sechead"><h2>All eight routes</h2></div>
+      <div class="sechead"><h2>All nine routes</h2></div>
       <table class="ptbl"><thead><tr>
         <th>Route</th><th>Monthly</th><th>Up front</th><th>Full term</th>
         <th>Per dev / mo</th><th>AI / task</th><th>Unfinished</th><th>Headroom</th>
@@ -648,7 +648,7 @@ footer b{color:var(--ink-2)}
     </section>
 
     <section>
-      <div class="sechead"><h2>The eight routes</h2><p>Cheapest first.</p></div>
+      <div class="sechead"><h2>The nine routes</h2><p>Cheapest first.</p></div>
       <div class="cards" id="cards"></div>
     </section>
 
@@ -1164,6 +1164,10 @@ function compute(){
   var hybridFleetTps = hs.replicas * hs.replicaTps;
   var hybridBuyTotal  = hybridFleetCapex + hybridFleetPower + setupLabour / amort;
   var hybridRentTotal = hybridRentMo + hStorMo + rentSetup / amort;
+  /* The hybrid's day-one cheque is for ITS fleet, not the standalone one.
+     buyUpfront covers s.gpus cards; the hybrid only ever buys hs.gpus, which
+     is smaller whenever the open tier carries less than the whole workload. */
+  var hBuyUpfront     = hHwCapex + setupLabour;
   var hybridBuy = hybridBuyTotal <= hybridRentTotal;
 
   var rows = [
@@ -1226,7 +1230,7 @@ function compute(){
       note:"The open model tries first; whatever it cannot finish escalates to the frontier API. Two independent shots, so it finishes more than either alone \u2014 "
         + Math.round(EFF.hybrid.unres * 100) + "% of accepted tasks still need a person, against "
         + Math.round(EFF.frontier.unres * 100) + "% on frontier alone.",
-      upfront: hybridBuy ? buyUpfront : rentSetup,
+      upfront: hybridBuy ? hBuyUpfront : rentSetup,
       capex: hybridBuy ? hybridFleetCapex : 0,
       power: hybridBuy ? hybridFleetPower : storMo,
       people: platformMo + adminMo + (hybridBuy ? setupLabour : rentSetup) / amort,
@@ -1434,7 +1438,7 @@ function render(){
   if(an) an.textContent = "costs " + d.dragPct.toFixed(1) + "% of coding time";
 
   document.getElementById("ex-note").innerHTML =
-    "<b style=\"color:var(--ink-2)\">Print</b> gives a clean document: the verdict, all eight routes, "
+    "<b style=\"color:var(--ink-2)\">Print</b> gives a clean document: the verdict, all nine routes, "
     + "the bill of materials, and every assumption listed at the end so nobody has to ask what you plugged in. "
     + "<b style=\"color:var(--ink-2)\">CSV</b> carries the same thing as numbers a spreadsheet can work with \u2014 "
     + "assumptions, sizing, the route comparison with its five cost components, and the bill of materials line by line. "

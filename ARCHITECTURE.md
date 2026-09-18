@@ -313,7 +313,7 @@ A fixed baseline bites hardest at small scale, and many organisations already ru
 a gateway serving many workloads. The **entitlement switch** zeroes it; to model
 an allocated share instead, lower the FTE rather than switching it off.
 
-### The eight routes
+### The nine routes
 
 | Route | capex | power | people | usage |
 | --- | --- | --- | --- | --- |
@@ -656,7 +656,6 @@ Not modelled, and worth saying out loud:
 - Prefix caching, chunked prefill, speculative decoding and scheduler behaviour
 - The distribution of context lengths, as opposed to one average
 - The compute-bound regime at very large batch
-- Hybrid routing: cheap model first, escalate on failure
 - Defect escape rate, and the cost of a bad change that gets merged
 - Spot and committed-use discounts, reserved capacity, enterprise agreements
 - Network egress
