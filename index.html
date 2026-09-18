@@ -59,6 +59,7 @@
 }
 
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{background:var(--ground)}
 body{
   margin:0;color:var(--ink);
@@ -134,9 +135,43 @@ button,select,input{font-family:inherit}
 .ctl input:focus,.ctl select:focus{outline:none}
 .unit{display:flex;align-items:center;padding:0 8px;font-size:10.5px;color:var(--muted);background:var(--surface-3);border-left:1px solid var(--line);white-space:nowrap;font-family:"IBM Plex Mono",monospace}
 
+/* ── simple mode ────────────────────────────────────────────────────────── */
+.simple{padding:4px 0}
+.lever{padding:14px 16px 16px;border-bottom:1px solid var(--line-soft)}
+.lever:last-child{border-bottom:0}
+.lever .lh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:3px}
+.lever .lh label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.lever .lh output{font-size:15px;font-weight:600;letter-spacing:-0.02em;color:var(--accent)}
+.lever .why{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 10px}
+.lever input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;background:transparent;margin:0;padding:6px 0;cursor:pointer;
+}
+.lever input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:var(--surface-3)}
+.lever input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:var(--surface-3)}
+.lever input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.3);margin-top:-6px;
+}
+.lever input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.lever input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.tiers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:2px}
+.tiers button{
+  text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);
+  cursor:pointer;color:var(--ink-2);
+}
+.tiers button:hover{background:var(--surface-2)}
+.tiers button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tiers b{display:block;font-size:12px;font-weight:600;color:var(--ink)}
+.tiers span{display:block;font-size:10px;color:var(--muted);margin-top:1px;font-family:"IBM Plex Mono",monospace}
+.tiers button[aria-pressed="true"] b{color:var(--accent)}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;margin-top:2px}
+
 /* ── kpi row ────────────────────────────────────────────────────────────── */
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
-.kpi{background:var(--surface);padding:14px 16px 15px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:1px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.kpi{background:var(--surface);padding:14px 16px 15px;min-width:0;outline:1px solid var(--line)}
 .kpi .k{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .kpi .v{font-size:24px;font-weight:600;letter-spacing:-0.025em;line-height:1.15;margin-top:6px;word-break:break-word}
 .kpi .n{font-size:11.5px;color:var(--muted);margin-top:4px}
@@ -163,18 +198,19 @@ button,select,input{font-family:inherit}
 .cap{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
 .captbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .captbl th{
+  padding-inline:10px;
   text-align:right;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
   padding:9px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap;
 }
 .captbl th:first-child{text-align:left}
-.captbl td{padding:8px 14px;border-bottom:1px solid var(--line-soft);text-align:right;white-space:nowrap}
-.captbl td:first-child{text-align:left;white-space:normal;min-width:170px}
+.captbl td{padding:8px 10px;border-bottom:1px solid var(--line-soft);text-align:right;white-space:nowrap}
+.captbl td:first-child{text-align:left;white-space:normal;min-width:132px}
 .captbl tr:last-child td{border-bottom:0}
 .captbl tbody tr:hover{background:var(--surface-2)}
-.captbl .nm b{font-weight:600}
+.captbl .nm b{font-weight:600;display:block;line-height:1.25}
 .captbl .nm span{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .hb{display:flex;align-items:center;gap:8px;justify-content:flex-end}
-.hbar{width:76px;height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden;flex:none}
+.hbar{width:58px;height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden;flex:none}
 .hbar i{display:block;height:100%;border-radius:4px}
 .hval{font-weight:600;min-width:46px;text-align:right}
 .h-ok  .hbar i{background:var(--good)}   .h-ok  .hval{color:var(--good)}
@@ -238,12 +274,78 @@ footer b{color:var(--ink-2)}
   opacity:0;transition:opacity .12s;box-shadow:0 6px 20px -8px rgba(0,0,0,.5)}
 #tip.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media (max-width:560px){
+
+/* ═══ tablet: one column, but lay the panels out side by side ═══════════ */
+@media (max-width:1099px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  .rail{
+    position:static;max-height:none;overflow:visible;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:12px;align-items:start;
+  }
+  .rail .panel[open]{grid-column:auto}
+  #simplepanel{grid-column:1/-1}
+  #simplepanel .simple{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  #simplepanel .lever{border-bottom:0;border-right:1px solid var(--line-soft)}
+  #simplepanel .lever:last-child{border-right:0}
+  .chart{--labw:156px}
+}
+
+/* ═══ phone: stack everything, no sideways scroll ═══════════════════════ */
+@media (max-width:679px){
+  .layout{padding-block:14px 48px;gap:14px}
+  .topbar-in{padding-block:8px;gap:8px 12px}
+  .brand{width:100%}
+  .brand b{font-size:14px}
+  .brand span{display:none}
+  .tools{width:100%;gap:6px}
+  .seg{flex:1}
+  .seg button{flex:1;text-align:center;padding:9px 8px}
+  .icobtn{padding:9px 12px}
+
+  .rail{grid-template-columns:minmax(0,1fr)}
+  #simplepanel .simple{grid-template-columns:minmax(0,1fr)}
+  #simplepanel .lever{border-right:0;border-bottom:1px solid var(--line-soft)}
+  #simplepanel .lever:last-child{border-bottom:0}
+
+  .kpi{padding:12px 14px 13px}
+  .kpi .v{font-size:20px}
+  .szgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+  /* the capacity table becomes one block per route */
+  .captbl,.captbl tbody,.captbl tr,.captbl td{display:block;width:100%}
+  .captbl thead{display:none}
+  .captbl tr{padding:12px 14px;border-bottom:1px solid var(--line)}
+  .captbl tr:last-child{border-bottom:0}
+  .captbl td{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:4px 0;border-bottom:0;text-align:right;
+  }
+  .captbl td:first-child{padding:0 0 6px;text-align:left}
+  .captbl td[data-label]::before{
+    content:attr(data-label);font-size:10px;font-weight:600;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--muted);text-align:left;
+  }
+  .captbl td:first-child{min-width:0}
+  .capwrap{overflow-x:visible}
+  .hb{justify-content:flex-end}
+
   .chart{--labw:auto;padding:14px 12px 12px}
   .axis{display:none}
-  .row{grid-template-columns:minmax(0,1fr) 64px;gap:4px 10px}
-  .plot{grid-column:1/-1}
-  .kpi .v{font-size:21px}
+  .row{grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:7px 0}
+  .row .lab b{white-space:normal}
+  .plot{grid-column:1/-1;height:22px}
+  .legend{gap:6px 14px;font-size:11px}
+  .cards{grid-template-columns:minmax(0,1fr);gap:10px}
+  .card .big{font-size:26px}
+  .sechead{margin-bottom:8px}
+}
+
+/* ═══ small phone ══════════════════════════════════════════════════════ */
+@media (max-width:399px){
+  .tiers{grid-template-columns:minmax(0,1fr)}
+  .szgrid{grid-template-columns:minmax(0,1fr)}
+  .subs{gap:3px 12px}
 }
 </style>
 </head>
@@ -253,7 +355,11 @@ footer b{color:var(--ink-2)}
   <div class="topbar-in">
     <div class="brand"><b>Coding Model TCO</b><span>Three-year cost of ownership</span></div>
     <div class="tools">
-      <div class="seg" id="presets">
+      <div class="seg" id="modes">
+        <button type="button" data-mode="simple" aria-pressed="true">Simple</button>
+        <button type="button" data-mode="advanced">Advanced</button>
+      </div>
+      <div class="seg" id="presets" hidden>
         <button type="button" data-preset="solo">Solo</button>
         <button type="button" data-preset="startup">Startup</button>
         <button type="button" data-preset="midsize" aria-pressed="true">Midsize</button>
@@ -267,12 +373,39 @@ footer b{color:var(--ink-2)}
 
 <main class="layout">
   <aside class="rail">
-    <details class="panel" open><summary>Team &amp; workload</summary><div class="fields" id="f-team"></div></details>
-    <details class="panel" open><summary>Open-weight model</summary><div class="fields" id="f-model"></div></details>
-    <details class="panel"><summary>Money &amp; time</summary><div class="fields" id="f-money"></div></details>
-    <details class="panel"><summary>Accelerators</summary><div class="fields" id="f-gpu"></div></details>
-    <details class="panel"><summary>Facility &amp; laptops</summary><div class="fields" id="f-iron"></div></details>
-    <details class="panel"><summary>Model rates</summary><div class="fields" id="f-rates"></div></details>
+    <div class="panel" id="simplepanel">
+      <div style="padding:11px 14px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)">The three levers</div>
+      <div class="simple">
+        <div class="lever">
+          <div class="lh"><label for="s-devs">Developers</label><output id="s-devs-out">60</output></div>
+          <p class="why">Token bills scale straight with headcount. Fixed hardware does not — which is the whole argument.</p>
+          <input type="range" id="s-devs" min="1" max="500" step="1" value="60">
+          <div class="scale"><span>1</span><span>500</span></div>
+        </div>
+        <div class="lever">
+          <div class="lh"><label>How hard they use it</label></div>
+          <p class="why">Anthropic reports about $13 per developer per active day across enterprise deployments. Heavy matches that.</p>
+          <div class="tiers" id="s-tiers">
+            <button type="button" data-tier="light"><b>Light</b><span>3M in · 90k out</span></button>
+            <button type="button" data-tier="steady"><b>Steady</b><span>6M in · 180k out</span></button>
+            <button type="button" data-tier="heavy" aria-pressed="true"><b>Heavy</b><span>10M in · 300k out</span></button>
+            <button type="button" data-tier="allday"><b>All-day agent</b><span>20M in · 700k out</span></button>
+          </div>
+        </div>
+        <div class="lever">
+          <div class="lh"><label for="s-drag">Open-model time penalty</label><output id="s-drag-out">15%</output></div>
+          <p class="why">Extra developer hours lost because the model you can host is weaker than the one you rent. Drag this to 0 and the ranking flips.</p>
+          <input type="range" id="s-drag" min="0" max="40" step="1" value="15">
+          <div class="scale"><span>0% — same quality</span><span>40%</span></div>
+        </div>
+      </div>
+    </div>
+    <details class="panel" open hidden><summary>Team &amp; workload</summary><div class="fields" id="f-team"></div></details>
+    <details class="panel" open hidden><summary>Open-weight model</summary><div class="fields" id="f-model"></div></details>
+    <details class="panel" hidden><summary>Money &amp; time</summary><div class="fields" id="f-money"></div></details>
+    <details class="panel" hidden><summary>Accelerators</summary><div class="fields" id="f-gpu"></div></details>
+    <details class="panel" hidden><summary>Facility &amp; laptops</summary><div class="fields" id="f-iron"></div></details>
+    <details class="panel" hidden><summary>Model rates</summary><div class="fields" id="f-rates"></div></details>
   </aside>
 
   <div class="results">
@@ -354,11 +487,11 @@ var QUANTS = [
    speed. buy is a street price for one card; rent is an hourly on-demand
    rate from a GPU cloud. */
 var GPUS = [
-  {id:"a100",   label:"A100 80GB SXM",    vram:80,  bw:2039, buy:16000, rent:1.80, w:400},
-  {id:"h100",   label:"H100 80GB SXM",    vram:80,  bw:3350, buy:28000, rent:2.80, w:700},
-  {id:"h200",   label:"H200 141GB SXM",   vram:141, bw:4800, buy:33000, rent:3.40, w:700},
-  {id:"b200",   label:"B200 180GB",       vram:180, bw:8000, buy:45000, rent:6.00, w:1000},
-  {id:"mi300x", label:"MI300X 192GB",     vram:192, bw:5300, buy:20000, rent:2.20, w:750},
+  {id:"a100",   label:"A100 80GB SXM",    vram:80,  bw:2039, buy:12000, rent:1.10, w:400},
+  {id:"h100",   label:"H100 80GB SXM",    vram:80,  bw:3350, buy:31000, rent:2.40, w:700},
+  {id:"h200",   label:"H200 141GB SXM",   vram:141, bw:4800, buy:34000, rent:3.20, w:700},
+  {id:"b200",   label:"B200 180GB",       vram:180, bw:8000, buy:55000, rent:6.00, w:1000},
+  {id:"mi300x", label:"MI300X 192GB",     vram:192, bw:5300, buy:18000, rent:2.00, w:750},
   {id:"l40s",   label:"L40S 48GB",        vram:48,  bw:864,  buy:8000,  rent:1.10, w:350},
   {id:"rtx6000",label:"RTX 6000 Ada 48GB",vram:48,  bw:960,  buy:7000,  rent:0.90, w:300},
   {id:"rtx5090",label:"RTX 5090 32GB",    vram:32,  bw:1792, buy:2500,  rent:0.70, w:575}
@@ -379,6 +512,7 @@ var GROUPS = {
     ["batch","Concurrent requests / replica","",16,1],
     ["bwEff","Bandwidth efficiency","%",65,1],
     ["ckpts","Checkpoints kept on disk","",3,1],
+    ["streamCap","Single-stream ceiling","tok/s",250,10],
     ["sessConc","Devs with a live session","%",60,5],
     ["lapBw","Laptop memory bandwidth","GB/s",546,10]
   ],
@@ -386,12 +520,12 @@ var GROUPS = {
     ["horizon","Horizon","mo",36,1],
     ["amort","Hardware write-off","mo",36,1],
     ["devRate","Loaded developer cost","$/h",95,1],
-    ["fteCost","Loaded platform engineer","$/yr",180000,5000],
+    ["fteCost","Loaded platform engineer","$/yr",260000,5000],
     ["drag","Open-model time penalty","%",15,1]
   ],
   "f-gpu": [
-    ["gpuBuy","Purchase price / card","$",28000,500],
-    ["gpuRent","On-demand rent / card","$/h",2.80,0.05],
+    ["gpuBuy","Purchase price / card","$",31000,500],
+    ["gpuRent","On-demand rent / card","$/h",2.40,0.05],
     ["gpuW","Card draw","W",700,25],
     ["gpuVram","Memory / card","GB",80,8],
     ["gpuBw","Memory bandwidth","GB/s",3350,50],
@@ -401,7 +535,7 @@ var GROUPS = {
   "f-iron": [
     ["pue","Datacentre PUE","x",1.4,0.05],
     ["kwhDc","Datacentre electricity","$/kWh",0.10,0.01],
-    ["coloKw","Rack space &amp; cooling","$/kW/mo",180,10],
+    ["coloKw","Rack space &amp; cooling","$/kW/mo",200,10],
     ["adminFte","Platform engineers on it","FTE",0.4,0.05],
     ["storGb","Model storage","$/GB/mo",0.08,0.01],
     ["activeHrs","Busy hours / day","h",8,1],
@@ -414,19 +548,19 @@ var GROUPS = {
     ["kwhOffice","Office electricity","$/kWh",0.14,0.01]
   ],
   "f-rates": [
-    ["anIn","Anthropic · input","$/M",3,0.05],
-    ["anOut","Anthropic · output","$/M",15,0.25],
-    ["anCache","Anthropic · cache read","$/M",0.30,0.01],
-    ["oaIn","OpenAI · input","$/M",1.25,0.05],
-    ["oaOut","OpenAI · output","$/M",10,0.25],
-    ["oaCache","OpenAI · cache read","$/M",0.125,0.005],
-    ["bedIn","Bedrock · input","$/M",3,0.05],
-    ["bedOut","Bedrock · output","$/M",15,0.25],
-    ["bedCache","Bedrock · cache read","$/M",0.30,0.01],
-    ["azIn","Azure · input","$/M",1.25,0.05],
-    ["azOut","Azure · output","$/M",10,0.25],
-    ["azCache","Azure · cache read","$/M",0.125,0.005],
-    ["seat","Flat seat price","$/dev/mo",150,5],
+    ["anIn","Anthropic · input","$/M",2,0.05],
+    ["anOut","Anthropic · output","$/M",10,0.25],
+    ["anCache","Anthropic · cache read","$/M",0.20,0.01],
+    ["oaIn","OpenAI · input","$/M",4,0.05],
+    ["oaOut","OpenAI · output","$/M",20,0.25],
+    ["oaCache","OpenAI · cache read","$/M",0.40,0.01],
+    ["bedIn","Bedrock · input","$/M",2,0.05],
+    ["bedOut","Bedrock · output","$/M",10,0.25],
+    ["bedCache","Bedrock · cache read","$/M",0.20,0.01],
+    ["azIn","Azure · input","$/M",4,0.05],
+    ["azOut","Azure · output","$/M",20,0.25],
+    ["azCache","Azure · cache read","$/M",0.40,0.01],
+    ["seat","Flat seat price","$/dev/mo",120,5],
     ["cloudOps","Cloud plumbing staff","FTE",0.15,0.05],
     ["anTpm","Anthropic ceiling","k tok/min",2000,100],
     ["oaTpm","OpenAI ceiling","k tok/min",2000,100],
@@ -495,9 +629,25 @@ function size(peakTps){
   var gpusPerReplica = Math.max(1, Math.ceil(vramNeed / vram));
 
   /* Decode is memory-bandwidth bound: each token reads the active weights.
-     Tensor parallelism adds bandwidth; batching amortises the read. */
+     Tensor parallelism adds bandwidth; batching amortises the read.
+
+     The batch multiplier is capped at 32 and the default efficiency is 65%,
+     giving an effective ~21x. That is calibrated against published vLLM
+     numbers on H100: Llama 70B FP8 on 4 cards measures ~3,400 output tok/s
+     at 256 concurrency (this model says ~4,000) and Llama 8B FP8 on 1 card
+     measures ~11,200 (this model says ~8,700). Within about 25% either way.
+     An uncapped multiplier overstated throughput by roughly 2.3x, which
+     understated the fleet — and so understated the cost of self-hosting.
+
+     The single-stream ceiling is the second guard. The bandwidth term alone
+     says a 5B-active mixture-of-experts model decodes at 1,280 tok/s on one
+     stream, which no real system does — kernel launches, attention and
+     sampling cap a single stream far below the weights-read limit. 250 tok/s
+     is that ceiling, and it is editable. */
   var bytesPerTok  = m.active * q.bytes;                   /* GB read per token */
-  var replicaTps   = (gpusPerReplica * bw / bytesPerTok) * (v("bwEff")/100) * Math.min(v("batch"), 64);
+  var perStream    = Math.min((gpusPerReplica * bw / bytesPerTok) * (v("bwEff")/100),
+                              v("streamCap"));
+  var replicaTps   = perStream * Math.min(v("batch"), 32);
 
   var replicas = replicaTps > 0 ? Math.max(1, Math.ceil(peakTps / replicaTps)) : 1;
   var gpus     = replicas * gpusPerReplica;
@@ -507,7 +657,7 @@ function size(peakTps){
 
   return {
     m:m, q:q, g:g, weightsGb:weightsGb, kvGb:kvGb, vramNeed:vramNeed,
-    gpusPerReplica:gpusPerReplica, replicaTps:replicaTps, replicas:replicas,
+    gpusPerReplica:gpusPerReplica, replicaTps:replicaTps, perStream:perStream, replicas:replicas,
     gpus:gpus, storageGb:storageGb, fitsLaptop: (weightsGb + overhead + 4) <= v("lapRam")
   };
 }
@@ -625,8 +775,23 @@ function compute(){
       r.headroom = demandTps > 0 ? r.capTps / demandTps : 0;
     }
   });
+  /* The question behind the whole tool: self-hosting is cheaper on paper by
+     some margin. How much developer time does that margin actually buy? If
+     the answer is under a percent, the quality gap settles the argument
+     before the spreadsheet does. */
+  var ownIds = {laptop:1, buy:1, rent:1};
+  var cheapestHosted = Infinity, cheapestOwnInfra = Infinity;
+  rows.forEach(function(r){
+    if(ownIds[r.id]) cheapestOwnInfra = Math.min(cheapestOwnInfra, r.total - r.drag);
+    else             cheapestHosted   = Math.min(cheapestHosted, r.total);
+  });
+  var codingSpendMo = devs * v("codeHrs") * days * v("devRate");
+  var qualityBudget = cheapestHosted - cheapestOwnInfra;
+  var qualityPct = codingSpendMo > 0 ? qualityBudget / codingSpendMo * 100 : 0;
+
   rows.sort(function(a,b){ return a.total - b.total; });
   return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps,
+           qualityBudget:qualityBudget, qualityPct:qualityPct, dragSet:v("drag"),
            sessTps:sessTps, liveSessions:liveSessions, demandTps:demandTps, lapTps:lapTps };
 }
 
@@ -649,7 +814,12 @@ function render(){
       kpi("win",  "Cheapest route",           best.name,  money(best.total) + " a month")
     + kpi("",     d.horizon + "-month bill",  money(best.life), "for " + d.devs + " developer" + (d.devs === 1 ? "" : "s"))
     + kpi("lose", "Priciest route",           worst.name, money(worst.total) + " a month")
-    + kpi("",     "Spread",                   money((worst.total - best.total) * d.horizon), "saved by picking first over last");
+    + kpi("",     "Spread",                   money((worst.total - best.total) * d.horizon), "saved by picking first over last")
+    + kpi(d.qualityPct >= d.dragSet ? "win" : "lose", "Quality budget",
+          (d.qualityPct > 0 ? d.qualityPct.toFixed(1) : "0") + "%",
+          d.qualityPct <= 0
+            ? "self-hosting costs more even at equal quality"
+            : "developer time the self-hosted saving buys \u2014 you set the penalty at " + d.dragSet + "%");
 
   /* sizing strip */
   document.getElementById("sz-summary").textContent =
@@ -659,7 +829,7 @@ function render(){
     + sz(num(s.kvGb) + " GB", "KV cache", v("batch") + " requests x " + v("ctxK") + "k ctx")
     + sz(num(s.vramNeed) + " GB", "Memory per replica", "incl. 15% overhead")
     + sz(s.gpusPerReplica + " x", "Cards per replica", num(v("gpuVram")) + " GB each")
-    + sz(num(s.replicaTps) + " tok/s", "Replica throughput", "decode, all requests")
+    + sz(num(s.replicaTps) + " tok/s", "Replica throughput", num(s.perStream) + " tok/s x " + Math.min(v("batch"), 32) + " streams")
     + sz(num(d.peakTps) + " tok/s", "Peak demand", "busy hour, output only")
     + sz(s.replicas + " x", "Replicas needed", s.gpus + " cards total")
     + sz(num(s.storageGb/1000, 1) + " TB", "Checkpoint storage", v("ckpts") + " kept on disk");
@@ -677,10 +847,10 @@ function render(){
     var pct = Math.max(3, Math.min(100, h * 50));
     return '<tr>'
       + '<td class="nm"><b>' + r.name + '</b><span>' + r.group + '</span></td>'
-      + '<td class="mono">' + num(r.capTps) + ' tok/s</td>'
-      + '<td class="mono">' + num(r.sessions) + '</td>'
-      + '<td class="mono">' + (r.devsHeld === null ? 'scales 1:1' : num(r.devsHeld)) + '</td>'
-      + '<td><div class="hb ' + cls + '"><div class="hbar"><i style="width:' + pct + '%"></i></div>'
+      + '<td class="mono" data-label="Sustained">' + num(r.capTps) + ' tok/s</td>'
+      + '<td class="mono" data-label="Live sessions">' + num(r.sessions) + '</td>'
+      + '<td class="mono" data-label="Developers">' + (r.devsHeld === null ? 'scales 1:1' : num(r.devsHeld)) + '</td>'
+      + '<td data-label="Headroom"><div class="hb ' + cls + '"><div class="hbar"><i style="width:' + pct + '%"></i></div>'
       +   '<span class="hval mono">' + (h >= 10 ? '10x+' : h.toFixed(1) + 'x') + '</span></div></td>'
       + '</tr>';
   }).join("");
@@ -778,6 +948,7 @@ function applyPreset(name){
   document.querySelectorAll("#presets button").forEach(function(b){
     b.setAttribute("aria-pressed", b.getAttribute("data-preset") === name ? "true" : "false");
   });
+  syncDevs(); syncDrag();
   render();
 }
 document.getElementById("presets").addEventListener("click", function(e){
@@ -792,6 +963,62 @@ document.getElementById("resetbtn").addEventListener("click", function(){
   document.getElementById("gpu").value   = "h100";
   applyPreset("midsize");
 });
+/* ── simple mode ───────────────────────────────────────────────────────────
+   The three levers write into the same canonical inputs the advanced panels
+   use, so compute() never needs to know which mode is on. Usage tiers are
+   anchored on Anthropic's reported ~$13 per developer per active day. */
+var TIERS = {
+  light:  {inTok:3,  outTok:90,  codeHrs:2},
+  steady: {inTok:6,  outTok:180, codeHrs:4},
+  heavy:  {inTok:10, outTok:300, codeHrs:5},
+  allday: {inTok:20, outTok:700, codeHrs:7}
+};
+
+function setTier(name){
+  var t = TIERS[name]; if(!t) return;
+  document.getElementById("inTok").value   = t.inTok;
+  document.getElementById("outTok").value  = t.outTok;
+  document.getElementById("codeHrs").value = t.codeHrs;
+  document.querySelectorAll("#s-tiers button").forEach(function(b){
+    b.setAttribute("aria-pressed", b.getAttribute("data-tier") === name ? "true" : "false");
+  });
+  render();
+}
+document.getElementById("s-tiers").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(b) setTier(b.getAttribute("data-tier"));
+});
+
+function bindLever(sliderId, targetId, fmt){
+  var slider = document.getElementById(sliderId);
+  var out = document.getElementById(sliderId + "-out");
+  slider.addEventListener("input", function(){
+    document.getElementById(targetId).value = slider.value;
+    out.textContent = fmt(slider.value);
+    render();
+  });
+  return function sync(){
+    slider.value = document.getElementById(targetId).value;
+    out.textContent = fmt(slider.value);
+  };
+}
+var syncDevs = bindLever("s-devs", "devs", function(x){ return x; });
+var syncDrag = bindLever("s-drag", "drag", function(x){ return x + "%"; });
+
+function setMode(mode){
+  var simple = mode === "simple";
+  document.getElementById("simplepanel").hidden = !simple;
+  document.getElementById("presets").hidden = simple;
+  document.querySelectorAll(".rail details.panel").forEach(function(d){ d.hidden = simple; });
+  document.querySelectorAll("#modes button").forEach(function(b){
+    b.setAttribute("aria-pressed", b.getAttribute("data-mode") === mode ? "true" : "false");
+  });
+  if(simple){ syncDevs(); syncDrag(); }
+  render();
+}
+document.getElementById("modes").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(b) setMode(b.getAttribute("data-mode"));
+});
+
 document.getElementById("themebtn").addEventListener("click", function(){
   var root = document.documentElement;
   var dark = root.getAttribute("data-theme") === "dark"

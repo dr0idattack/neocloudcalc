@@ -49,22 +49,49 @@ get interesting.
 **Cost.** Monthly and over the full horizon, per developer and per million output
 tokens, broken down by where the money goes.
 
+## Two modes
+
+**Simple** gives you three levers, because three is what actually moves the
+answer: how many developers, how hard they use it, and how much developer time
+the weaker open-weight model costs you.
+
+**Advanced** opens all six panels — workload, model and precision, money and
+time, accelerators, facility and laptops, and every published rate — plus team
+presets for Solo, Startup, Midsize and Enterprise.
+
+Works on a phone, a tablet and a desktop.
+
 ## Using it
 
-1. Hit a preset — Solo, Startup, Midsize, Enterprise.
-2. Set team size and tokens per developer per day in **Team & workload**.
-3. Pick your model, precision and card in **Open-weight model** and
-   **Accelerators**.
-4. Open **Model rates** and replace the list prices with your contract rates.
-5. Read the ranking. Then set **Open-model time penalty** to 0 in **Money & time**
-   and read it again — that one field decides the whole argument.
+1. Start in **Simple**. Set the team size and pick a usage tier.
+2. Drag the **open-model time penalty** to 0 and watch the ranking flip. That
+   one field decides the whole argument.
+3. Switch to **Advanced** to pick your model, precision and card, and to replace
+   the list prices in **Model rates** with your contract rates.
+
+## The finding
+
+At 60 developers a frontier API bill is about $200 per developer per month.
+Those developers cost roughly $10,000 each per month in loaded coding time. So a
+**2% productivity penalty costs as much as the entire API bill.**
+
+That is what the **Quality budget** figure shows: the share of developer time
+the self-hosted saving actually buys. When it is smaller than the penalty you
+believe in, no amount of GPU shopping changes the answer. Self-hosting a coding
+model is a bet on the open model being nearly as good — not on it being cheaper.
 
 ## Health warning
 
-Every rate, card price and model spec is a default typed in from public figures.
-They move. They are assumptions in a model, not a quote. `ARCHITECTURE.md` has
-every formula, where each default came from, and an explicit list of what is not
-modelled.
+Every rate, card price and model spec is a default typed in from public figures
+checked in September 2026. They move. They are assumptions in a model, not a
+quote.
+
+`SOURCES.md` records where each one came from, which three were wrong enough to
+change the answer, and how the model checks out against published break-even
+guidance. Short version: cost per developer per month lands at $200 against
+Anthropic's reported $150–250, and the self-hosting break-even lands at ~67
+developers and ~$160K/year of API spend, inside the published $50K–500K hybrid
+band.
 
 ## Files
 
@@ -72,4 +99,5 @@ modelled.
 | --- | --- |
 | `index.html` | The entire application — markup, styles, sizing, capacity and cost model |
 | `ARCHITECTURE.md` | Specification: catalogues, formulas, design tokens, omissions |
+| `SOURCES.md` | Every default's provenance, the corrections, and validation against published figures |
 | `AGENTS.md` | Directions for AI agents working in this repo |

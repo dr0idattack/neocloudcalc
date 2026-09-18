@@ -90,16 +90,30 @@ batching amortises the read across concurrent requests.
 
 ```
 bytesPerToken = active_params_B × bytes_per_param     (GB read per token)
-replicaTPS    = (cardsPerReplica × bw / bytesPerToken)
-                × bandwidth_efficiency
-                × min(batch, 64)
+perStream     = min( cardsPerReplica × bw / bytesPerToken × bandwidth_efficiency,
+                     single_stream_ceiling )
+replicaTPS    = perStream × min(batch, 32)
 ```
 
-This is the right first-order answer and wrong at the edges. It ignores prefill,
-ignores the compute-bound regime at very large batch, and ignores interconnect
-stalls in tensor parallelism. The `bandwidth_efficiency` input (default 65%) is
-where you absorb that; the batch multiplier is capped at 64 so the number cannot
-run away.
+Two guards, both calibrated against published vLLM measurements on H100 and both
+exposed as editable fields:
+
+- **Batch multiplier capped at 32.** With the default 65% efficiency that gives
+  an effective ~21×. Llama 70B FP8 on 4 cards measures ~3,400 output tok/s at
+  256 concurrency; this predicts ~4,000. Llama 8B FP8 on 1 card measures
+  ~11,200; this predicts ~8,700. Within about 25% either way.
+- **Single-stream ceiling, default 250 tok/s.** The bandwidth term alone claims
+  a 5B-active mixture-of-experts model decodes at 1,280 tok/s on one stream.
+  Nothing does — kernel launches, attention and sampling cap a single stream far
+  below the weights-read limit.
+
+An earlier version had neither guard and overstated throughput by roughly 2.3×.
+That understated the fleet, which understated the cost of self-hosting: the tool
+was flattering the option it should have been hardest on. See `SOURCES.md` §6.
+
+This is still the right first-order answer and wrong at the edges. It ignores
+prefill, the compute-bound regime at very large batch, and interconnect stalls
+in tensor parallelism.
 
 ### Fleet
 
@@ -198,6 +212,23 @@ life       = total × horizon_months
 Routes are sorted ascending by `total`. Rank one gets the "Cheapest" chip; the
 last gets "Priciest".
 
+### The quality budget
+
+The headline figure, and the reason the tool exists:
+
+```
+qualityBudget$ = cheapest_hosted_total − cheapest_own_hardware_total_excluding_drag
+codingSpend    = devs × hours_in_tool × working_days × loaded_hourly_rate
+qualityBudget% = qualityBudget$ / codingSpend × 100
+```
+
+This is the percentage of developer time that self-hosting's saving actually
+buys. At 60 developers the frontier API bill is about $200 per developer per
+month against roughly $10,000 of loaded coding time — so a **2% productivity
+penalty costs as much as the entire API bill.** When the quality budget is
+smaller than the penalty you believe in, the spreadsheet is not what decides the
+question. The KPI turns red in that case.
+
 ---
 
 ## 5. The capacity model
@@ -251,7 +282,46 @@ busy agentic session wants more than that.
 
 ---
 
-## 6. Design system
+## 6. Modes
+
+**Simple** shows three levers and nothing else: developers, a usage tier, and
+the open-model time penalty. They are the three inputs that move the answer
+most. The tier buttons write into the same `inTok` / `outTok` / `codeHrs`
+fields the advanced panels use, and the sliders write into `devs` and `drag`,
+so `compute()` never knows which mode is on. Switching to Simple re-syncs the
+sliders from the canonical inputs.
+
+Usage tiers, anchored on Anthropic's reported ~$13 per developer per active day:
+
+| Tier | Input/dev/day | Output/dev/day | Hours |
+| --- | --- | --- | --- |
+| Light | 3M | 90k | 2 |
+| Steady | 6M | 180k | 4 |
+| Heavy (default) | 10M | 300k | 5 |
+| All-day agent | 20M | 700k | 7 |
+
+**Advanced** reveals all six panels plus the team-size presets.
+
+## 7. Responsive behaviour
+
+Three layouts, with breakpoints deliberately set *off* the common device widths
+(1099px and 679px rather than 1024 and 640). Chrome evaluates media queries
+against the viewport including the classic scrollbar, so a breakpoint sitting
+exactly on 1024 flips on and off at iPad-landscape width. That bug was real and
+is why the numbers look odd.
+
+| Width | Layout |
+| --- | --- |
+| 1100px+ | Two panes. Sticky input rail on the left, results scroll on the right |
+| 680–1099px | One column. Rail panels reflow into an auto-fit grid, simple-mode levers sit side by side |
+| Up to 679px | Fully stacked. The capacity table becomes one block per route via `data-label` pseudo-elements, the chart drops its axis and the bars go full width, controls grow to touch size |
+| Up to 399px | Usage tiers and sizing cells drop to a single column |
+
+Verified with a scripted pass measuring `scrollWidth` and every element's right
+edge at 500 / 640 / 700 / 768 / 834 / 900 / 1024 / 1100 / 1280 / 1440. No
+horizontal page scroll at any width.
+
+## 8. Design system
 
 ### Colour
 
@@ -294,7 +364,7 @@ reads as empty rather than as a grey block.
 
 ---
 
-## 7. Deliberate omissions
+## 9. Deliberate omissions
 
 Not modelled, and worth saying out loud:
 
@@ -307,3 +377,7 @@ Not modelled, and worth saying out loud:
 - The cost of shipping a year behind
 
 Several of these are large. The tool is a frame for an argument, not a quote.
+
+Every default's provenance, the corrections made after checking them against
+published figures, and the validation of the model against published break-even
+guidance are in `SOURCES.md`.
