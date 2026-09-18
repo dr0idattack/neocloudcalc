@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coding Model TCO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap">
+<style>
+/* ── tokens ─────────────────────────────────────────────────────────────── */
+:root{
+  color-scheme: light;
+  --ground:#eef1f5;
+  --surface:#ffffff;
+  --surface-2:#f6f8fa;
+  --surface-3:#e9edf2;
+  --line:#dbe1e8;
+  --line-soft:#eaeef3;
+  --ink:#0b1220;
+  --ink-2:#394454;
+  --muted:#6a7687;
+  --accent:#125ec4;
+  --accent-soft:#e7effb;
+  --good:#0a6b42;
+  --good-soft:#e2f1ea;
+  --bad:#a23a2b;
+  --bad-soft:#fbeae6;
+  --warn:#8a5a06;
+  --warn-soft:#fbf1dd;
+  --shadow:0 1px 2px rgba(11,18,32,.06), 0 8px 24px -16px rgba(11,18,32,.3);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0a0e13; --surface:#121820; --surface-2:#182029; --surface-3:#1d2731;
+    --line:#242f3b; --line-soft:#1b2430;
+    --ink:#e9eef4; --ink-2:#b6c1cf; --muted:#7e8b9b;
+    --accent:#5a9bea; --accent-soft:#132437;
+    --good:#4dc089; --good-soft:#0f2a20;
+    --bad:#e98a7f; --bad-soft:#2c1a16;
+    --warn:#dfa63c; --warn-soft:#2a2113;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -18px rgba(0,0,0,.9);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0a0e13; --surface:#121820; --surface-2:#182029; --surface-3:#1d2731;
+  --line:#242f3b; --line-soft:#1b2430;
+  --ink:#e9eef4; --ink-2:#b6c1cf; --muted:#7e8b9b;
+  --accent:#5a9bea; --accent-soft:#132437;
+  --good:#4dc089; --good-soft:#0f2a20;
+  --bad:#e98a7f; --bad-soft:#2c1a16;
+  --warn:#dfa63c; --warn-soft:#2a2113;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -18px rgba(0,0,0,.9);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+}
+
+*{box-sizing:border-box}
+html,body{background:var(--ground)}
+body{
+  margin:0;color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+button,select,input{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+/* ── top bar ────────────────────────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:30;
+  background:var(--surface);border-bottom:1px solid var(--line);
+}
+.topbar-in{
+  max-width:1400px;margin:0 auto;padding-inline:16px;padding-block:9px;
+  min-height:56px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;
+}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand b{font-size:15px;font-weight:600;letter-spacing:-0.015em;white-space:nowrap}
+.brand span{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{
+  font-size:12px;font-weight:450;color:var(--ink-2);background:transparent;border:0;
+  border-right:1px solid var(--line);padding:6px 11px;cursor:pointer;white-space:nowrap;
+}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--surface-2);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.icobtn{border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink-2);padding:6px 11px;font-size:12px;cursor:pointer;white-space:nowrap}
+.icobtn:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ── layout ─────────────────────────────────────────────────────────────── */
+.layout{
+  max-width:1400px;margin:0 auto;padding-inline:16px;padding-block:20px 60px;
+  display:grid;grid-template-columns:344px minmax(0,1fr);gap:20px;align-items:start;
+}
+@media (max-width:1020px){ .layout{grid-template-columns:minmax(0,1fr)} .rail{position:static!important;max-height:none!important} }
+.rail{position:sticky;top:calc(72px + env(safe-area-inset-top,0px));max-height:calc(100vh - 92px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px}
+.results{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+/* ── panels ─────────────────────────────────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.panel > summary{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;
+  padding:11px 14px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  background:var(--surface-2);border-bottom:1px solid var(--line);
+}
+.panel > summary::-webkit-details-marker{display:none}
+.panel > summary::after{content:"+";font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--muted)}
+.panel[open] > summary::after{content:"–"}
+.panel > summary:hover{color:var(--ink-2)}
+
+/* ── input grid ─────────────────────────────────────────────────────────── */
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line-soft)}
+.f{background:var(--surface);padding:9px 12px 11px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.f.wide{grid-column:1/-1}
+.f label{font-size:11px;line-height:1.3;color:var(--muted)}
+.ctl{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);overflow:hidden}
+.ctl:hover{border-color:var(--muted)}
+.ctl:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ctl input,.ctl select{
+  flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--ink);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:13.5px;font-weight:500;padding:6px 8px;-moz-appearance:textfield;
+}
+.ctl select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:22px;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 13px) 14px,calc(100% - 8px) 14px;background-size:5px 5px;background-repeat:no-repeat;color:var(--ink)}
+.ctl input::-webkit-outer-spin-button,.ctl input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ctl input:focus,.ctl select:focus{outline:none}
+.unit{display:flex;align-items:center;padding:0 8px;font-size:10.5px;color:var(--muted);background:var(--surface-3);border-left:1px solid var(--line);white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+
+/* ── kpi row ────────────────────────────────────────────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.kpi{background:var(--surface);padding:14px 16px 15px;min-width:0}
+.kpi .k{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-size:24px;font-weight:600;letter-spacing:-0.025em;line-height:1.15;margin-top:6px;word-break:break-word}
+.kpi .n{font-size:11.5px;color:var(--muted);margin-top:4px}
+.kpi.win{box-shadow:inset 3px 0 0 var(--good)}
+.kpi.win .v{color:var(--good)}
+.kpi.lose{box-shadow:inset 3px 0 0 var(--bad)}
+
+/* ── sizing strip ───────────────────────────────────────────────────────── */
+.sizing{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.sizing .sh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.sizing .sh b{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sizing .sh em{font-style:normal;font-size:12px;color:var(--ink-2)}
+.szgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:1px;background:var(--surface)}
+.sz{outline:1px solid var(--line-soft)}
+.sz{background:var(--surface);padding:10px 13px 11px;min-width:0}
+.sz .k{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.sz .v{font-size:17px;font-weight:600;letter-spacing:-0.02em;margin-top:3px}
+.sz .n{font-size:10.5px;color:var(--muted);margin-top:2px}
+.flag{display:flex;gap:8px;align-items:flex-start;padding:10px 14px;font-size:11.5px;line-height:1.5;border-top:1px solid var(--line-soft)}
+.flag.ok{background:var(--good-soft);color:var(--good)}
+.flag.no{background:var(--warn-soft);color:var(--warn)}
+
+/* ── capacity ───────────────────────────────────────────────────────────── */
+.cap{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.captbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.captbl th{
+  text-align:right;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+  padding:9px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.captbl th:first-child{text-align:left}
+.captbl td{padding:8px 14px;border-bottom:1px solid var(--line-soft);text-align:right;white-space:nowrap}
+.captbl td:first-child{text-align:left;white-space:normal;min-width:170px}
+.captbl tr:last-child td{border-bottom:0}
+.captbl tbody tr:hover{background:var(--surface-2)}
+.captbl .nm b{font-weight:600}
+.captbl .nm span{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hb{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.hbar{width:76px;height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden;flex:none}
+.hbar i{display:block;height:100%;border-radius:4px}
+.hval{font-weight:600;min-width:46px;text-align:right}
+.h-ok  .hbar i{background:var(--good)}   .h-ok  .hval{color:var(--good)}
+.h-mid .hbar i{background:var(--s4)}     .h-mid .hval{color:var(--warn)}
+.h-no  .hbar i{background:var(--bad)}    .h-no  .hval{color:var(--bad)}
+.capwrap{overflow-x:auto}
+.capfoot{padding:10px 14px;font-size:11.5px;color:var(--muted);background:var(--surface-2);border-top:1px solid var(--line-soft);line-height:1.5}
+
+/* ── section heads ──────────────────────────────────────────────────────── */
+.sechead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.sechead h2{margin:0;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sechead p{margin:0;font-size:11.5px;color:var(--muted)}
+
+/* ── chart ──────────────────────────────────────────────────────────────── */
+.chart{--labw:210px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:16px 18px 14px}
+.axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-left:calc(var(--labw) + 14px);margin-right:78px}
+.rows{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.row{display:grid;grid-template-columns:var(--labw) minmax(0,1fr) 64px;gap:14px;align-items:center;padding:5px 0;border-radius:6px}
+.row:hover{background:var(--surface-2)}
+.row .lab{min-width:0}
+.row .lab b{display:block;font-size:12.5px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .lab span{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.row.top .lab b::after{content:"Cheapest";margin-left:7px;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--good);background:var(--good-soft);padding:2px 5px;border-radius:3px;vertical-align:1px}
+.plot{height:26px;border-radius:4px;background:var(--surface-2);
+  background-image:linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);background-size:25% 100%;
+  border:1px solid var(--line-soft);display:flex;overflow:hidden}
+.fill{display:flex;min-width:2px}
+.blk{border-right:2px solid var(--surface);min-width:0}
+.fill .blk:last-child{border-right:0}
+.row .tot{font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:7px 18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:11.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+
+/* ── cards ──────────────────────────────────────────────────────────────── */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.card.best{border-color:var(--good)}
+.card .ch{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:13px 14px 0}
+.card h3{margin:0;font-size:14px;font-weight:600;letter-spacing:-0.01em;line-height:1.3}
+.card .grp{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.tag{font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:4px;white-space:nowrap;background:var(--surface-3);color:var(--muted)}
+.tag.best{background:var(--good-soft);color:var(--good)}
+.tag.worst{background:var(--bad-soft);color:var(--bad)}
+.card .big{font-size:29px;font-weight:600;letter-spacing:-0.03em;line-height:1;padding:12px 14px 0}
+.card .big small{font-size:12px;font-weight:400;color:var(--muted);letter-spacing:0}
+.subs{display:flex;flex-wrap:wrap;gap:3px 16px;font-size:11px;color:var(--muted);padding:8px 14px 12px}
+.subs b{color:var(--ink-2);font-weight:600}
+.lines{border-top:1px solid var(--line-soft)}
+.ln{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:6px 14px;font-size:12px;border-bottom:1px solid var(--line-soft)}
+.ln .nm{display:flex;align-items:center;gap:8px;color:var(--ink-2);min-width:0}
+.ln i{width:9px;height:9px;border-radius:2px;flex:none}
+.ln .amt{font-weight:500;white-space:nowrap}
+.ln.zero{color:var(--muted);opacity:.55}
+.card .note{margin:0;padding:11px 14px 13px;font-size:11.5px;line-height:1.5;color:var(--muted);background:var(--surface-2);border-top:1px solid var(--line-soft);margin-top:auto}
+
+footer{font-size:11.5px;color:var(--muted);line-height:1.65;max-width:84ch}
+footer b{color:var(--ink-2)}
+
+#tip{position:fixed;pointer-events:none;z-index:60;background:var(--ink);color:var(--ground);
+  padding:7px 10px;border-radius:5px;font-size:11.5px;line-height:1.45;max-width:240px;
+  opacity:0;transition:opacity .12s;box-shadow:0 6px 20px -8px rgba(0,0,0,.5)}
+#tip.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:560px){
+  .chart{--labw:auto;padding:14px 12px 12px}
+  .axis{display:none}
+  .row{grid-template-columns:minmax(0,1fr) 64px;gap:4px 10px}
+  .plot{grid-column:1/-1}
+  .kpi .v{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><b>Coding Model TCO</b><span>Three-year cost of ownership</span></div>
+    <div class="tools">
+      <div class="seg" id="presets">
+        <button type="button" data-preset="solo">Solo</button>
+        <button type="button" data-preset="startup">Startup</button>
+        <button type="button" data-preset="midsize" aria-pressed="true">Midsize</button>
+        <button type="button" data-preset="enterprise">Enterprise</button>
+      </div>
+      <button class="icobtn" id="themebtn" type="button">Theme</button>
+      <button class="icobtn" id="resetbtn" type="button">Reset</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="rail">
+    <details class="panel" open><summary>Team &amp; workload</summary><div class="fields" id="f-team"></div></details>
+    <details class="panel" open><summary>Open-weight model</summary><div class="fields" id="f-model"></div></details>
+    <details class="panel"><summary>Money &amp; time</summary><div class="fields" id="f-money"></div></details>
+    <details class="panel"><summary>Accelerators</summary><div class="fields" id="f-gpu"></div></details>
+    <details class="panel"><summary>Facility &amp; laptops</summary><div class="fields" id="f-iron"></div></details>
+    <details class="panel"><summary>Model rates</summary><div class="fields" id="f-rates"></div></details>
+  </aside>
+
+  <div class="results">
+    <div class="kpis" id="kpis"></div>
+
+    <section>
+      <div class="sechead"><h2>What it takes to serve the model yourself</h2><p>Derived from the model, the quantisation and your peak load.</p></div>
+      <div class="sizing">
+        <div class="sh"><b>Sizing</b><em id="sz-summary"></em></div>
+        <div class="szgrid" id="szgrid"></div>
+        <div id="fitflag"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>How many developers it can actually carry</h2><p>Sustained output throughput against live agentic sessions.</p></div>
+      <div class="cap">
+        <div class="capwrap"><table class="captbl">
+          <thead><tr>
+            <th>Route</th><th>Sustained</th><th>Live sessions</th><th>Developers</th><th>Headroom</th>
+          </tr></thead>
+          <tbody id="captbody"></tbody>
+        </table></div>
+        <div class="capfoot" id="capfoot"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Monthly cost, by where it goes</h2><p>One shared scale. Hover a block for the exact figure.</p></div>
+      <div class="chart">
+        <div class="axis" id="axis"></div>
+        <div class="rows" id="rows"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>The eight routes</h2><p>Cheapest first.</p></div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <footer id="foot"></footer>
+  </div>
+</main>
+
+<div id="tip" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ═══ catalogues ══════════════════════════════════════════════════════════
+   Open-weight models published on Hugging Face. kvMB is megabytes of KV
+   cache per token at FP16, derived from layers x KV heads x head dim x 2
+   tensors x 2 bytes. Models using latent attention (DeepSeek, Kimi) compress
+   that hard, which is why their KV numbers look impossibly small — they are
+   not a typo. Figures are approximate; treat them as a starting point.      */
+var MODELS = [
+  {id:"qwen3coder480", label:"Qwen3-Coder 480B-A35B", total:480, active:35,  kvMB:0.25},
+  {id:"deepseek",      label:"DeepSeek-V3 671B-A37B", total:671, active:37,  kvMB:0.07},
+  {id:"kimi",          label:"Kimi K2 1T-A32B",       total:1000,active:32,  kvMB:0.06},
+  {id:"glm",           label:"GLM 355B-A32B",         total:355, active:32,  kvMB:0.22},
+  {id:"llama405",      label:"Llama 3.1 405B dense",  total:405, active:405, kvMB:0.52},
+  {id:"gptoss120",     label:"gpt-oss 120B-A5.1B",    total:117, active:5.1, kvMB:0.14},
+  {id:"llama70",       label:"Llama 3.3 70B dense",   total:70,  active:70,  kvMB:0.31},
+  {id:"qwen32",        label:"Qwen3 32B dense",       total:32,  active:32,  kvMB:0.26},
+  {id:"devstral",      label:"Devstral 24B dense",    total:24,  active:24,  kvMB:0.16},
+  {id:"gptoss20",      label:"gpt-oss 20B-A3.6B",     total:21,  active:3.6, kvMB:0.09}
+];
+
+/* Bytes per parameter by quantisation, and the KV cache multiplier. */
+var QUANTS = [
+  {id:"fp16", label:"BF16 / FP16", bytes:2.0,  kv:1.0},
+  {id:"fp8",  label:"FP8 / INT8",  bytes:1.0,  kv:0.5},
+  {id:"int4", label:"INT4 / MXFP4",bytes:0.55, kv:0.5}
+];
+
+/* Accelerators. bw is HBM bandwidth in GB/s — the number that sets decode
+   speed. buy is a street price for one card; rent is an hourly on-demand
+   rate from a GPU cloud. */
+var GPUS = [
+  {id:"a100",   label:"A100 80GB SXM",    vram:80,  bw:2039, buy:16000, rent:1.80, w:400},
+  {id:"h100",   label:"H100 80GB SXM",    vram:80,  bw:3350, buy:28000, rent:2.80, w:700},
+  {id:"h200",   label:"H200 141GB SXM",   vram:141, bw:4800, buy:33000, rent:3.40, w:700},
+  {id:"b200",   label:"B200 180GB",       vram:180, bw:8000, buy:45000, rent:6.00, w:1000},
+  {id:"mi300x", label:"MI300X 192GB",     vram:192, bw:5300, buy:20000, rent:2.20, w:750},
+  {id:"l40s",   label:"L40S 48GB",        vram:48,  bw:864,  buy:8000,  rent:1.10, w:350},
+  {id:"rtx6000",label:"RTX 6000 Ada 48GB",vram:48,  bw:960,  buy:7000,  rent:0.90, w:300},
+  {id:"rtx5090",label:"RTX 5090 32GB",    vram:32,  bw:1792, buy:2500,  rent:0.70, w:575}
+];
+
+/* ═══ fields: [id, label, unit, default, step] ════════════════════════════ */
+var GROUPS = {
+  "f-team": [
+    ["devs","Developers","",60,1],
+    ["workdays","Working days","/ mo",21,1],
+    ["inTok","Input tokens / dev / day","M",10,0.5],
+    ["outTok","Output tokens / dev / day","k",300,10],
+    ["cacheShare","Input from cache","%",75,1],
+    ["codeHrs","Hours in the tool / dev / day","h",5,0.5]
+  ],
+  "f-model": [
+    ["ctxK","Live context per request","k tok",64,4],
+    ["batch","Concurrent requests / replica","",16,1],
+    ["bwEff","Bandwidth efficiency","%",65,1],
+    ["ckpts","Checkpoints kept on disk","",3,1],
+    ["sessConc","Devs with a live session","%",60,5],
+    ["lapBw","Laptop memory bandwidth","GB/s",546,10]
+  ],
+  "f-money": [
+    ["horizon","Horizon","mo",36,1],
+    ["amort","Hardware write-off","mo",36,1],
+    ["devRate","Loaded developer cost","$/h",95,1],
+    ["fteCost","Loaded platform engineer","$/yr",180000,5000],
+    ["drag","Open-model time penalty","%",15,1]
+  ],
+  "f-gpu": [
+    ["gpuBuy","Purchase price / card","$",28000,500],
+    ["gpuRent","On-demand rent / card","$/h",2.80,0.05],
+    ["gpuW","Card draw","W",700,25],
+    ["gpuVram","Memory / card","GB",80,8],
+    ["gpuBw","Memory bandwidth","GB/s",3350,50],
+    ["hostCost","Host, NIC, fabric / 8 cards","$",45000,1000],
+    ["rentUtil","Rented fleet uptime","%",70,5]
+  ],
+  "f-iron": [
+    ["pue","Datacentre PUE","x",1.4,0.05],
+    ["kwhDc","Datacentre electricity","$/kWh",0.10,0.01],
+    ["coloKw","Rack space &amp; cooling","$/kW/mo",180,10],
+    ["adminFte","Platform engineers on it","FTE",0.4,0.05],
+    ["storGb","Model storage","$/GB/mo",0.08,0.01],
+    ["activeHrs","Busy hours / day","h",8,1],
+    ["peak","Peak-to-average","x",2,0.1],
+    ["lapRam","Laptop unified memory","GB",128,16],
+    ["lapUplift","Laptop uplift / dev","$",3000,100],
+    ["lapWatts","Laptop draw while running","W",90,5],
+    ["lapSupport","Laptop fiddling / dev / yr","h",6,1],
+    ["itRate","IT support cost","$/h",75,5],
+    ["kwhOffice","Office electricity","$/kWh",0.14,0.01]
+  ],
+  "f-rates": [
+    ["anIn","Anthropic · input","$/M",3,0.05],
+    ["anOut","Anthropic · output","$/M",15,0.25],
+    ["anCache","Anthropic · cache read","$/M",0.30,0.01],
+    ["oaIn","OpenAI · input","$/M",1.25,0.05],
+    ["oaOut","OpenAI · output","$/M",10,0.25],
+    ["oaCache","OpenAI · cache read","$/M",0.125,0.005],
+    ["bedIn","Bedrock · input","$/M",3,0.05],
+    ["bedOut","Bedrock · output","$/M",15,0.25],
+    ["bedCache","Bedrock · cache read","$/M",0.30,0.01],
+    ["azIn","Azure · input","$/M",1.25,0.05],
+    ["azOut","Azure · output","$/M",10,0.25],
+    ["azCache","Azure · cache read","$/M",0.125,0.005],
+    ["seat","Flat seat price","$/dev/mo",150,5],
+    ["cloudOps","Cloud plumbing staff","FTE",0.15,0.05],
+    ["anTpm","Anthropic ceiling","k tok/min",2000,100],
+    ["oaTpm","OpenAI ceiling","k tok/min",2000,100],
+    ["bedTpm","Bedrock quota","k tok/min",1000,100],
+    ["azTpm","Azure quota","k tok/min",1000,100],
+    ["seatTpm","Per-seat ceiling","tok/min",900,50]
+  ]
+};
+
+var PRESETS = {
+  solo:       {devs:1,   inTok:14, outTok:420, codeHrs:7, adminFte:0.05, cloudOps:0,    itRate:0,  batch:2,  ctxK:64},
+  startup:    {devs:10,  inTok:12, outTok:360, codeHrs:6, adminFte:0.15, cloudOps:0.05, itRate:75, batch:8,  ctxK:64},
+  midsize:    {devs:60,  inTok:10, outTok:300, codeHrs:5, adminFte:0.4,  cloudOps:0.15, itRate:75, batch:16, ctxK:64},
+  enterprise: {devs:400, inTok:8,  outTok:240, codeHrs:4, adminFte:1.5,  cloudOps:0.75, itRate:75, batch:48, ctxK:48}
+};
+
+var COMPONENTS = [
+  {key:"capex",  name:"Hardware, written down",   color:"var(--s1)"},
+  {key:"power",  name:"Power, rack &amp; storage",    color:"var(--s2)"},
+  {key:"people", name:"People to run it",         color:"var(--s3)"},
+  {key:"usage",  name:"Tokens, seats &amp; GPU rent", color:"var(--s4)"},
+  {key:"drag",   name:"Developer time lost",      color:"var(--s5)"}
+];
+
+/* ═══ build the rail ══════════════════════════════════════════════════════ */
+function selectHTML(id, label, list, sel){
+  return '<div class="f wide"><label for="' + id + '">' + label + '</label><div class="ctl">'
+    + '<select id="' + id + '">' + list.map(function(o){
+        return '<option value="' + o.id + '"' + (o.id === sel ? ' selected' : '') + '>' + o.label + '</option>';
+      }).join("") + '</select></div></div>';
+}
+Object.keys(GROUPS).forEach(function(id){
+  var html = GROUPS[id].map(function(f){
+    return '<div class="f"><label for="' + f[0] + '">' + f[1] + '</label><div class="ctl">'
+      + '<input id="' + f[0] + '" type="number" min="0" step="' + f[4] + '" value="' + f[3] + '" inputmode="decimal">'
+      + (f[2] ? '<span class="unit">' + f[2] + '</span>' : '') + '</div></div>';
+  }).join("");
+  if(id === "f-model") html = selectHTML("model","Model", MODELS, "gptoss120") + selectHTML("quant","Weight precision", QUANTS, "fp8") + html;
+  if(id === "f-gpu")   html = selectHTML("gpu","Accelerator", GPUS, "h100") + html;
+  document.getElementById(id).innerHTML = html;
+});
+
+function v(id){ var e = document.getElementById(id); var n = e ? parseFloat(e.value) : 0; return isFinite(n) && n >= 0 ? n : 0; }
+function pick(list, id){ var s = document.getElementById(id); for(var i=0;i<list.length;i++) if(list[i].id === s.value) return list[i]; return list[0]; }
+
+function money(n){
+  if(!isFinite(n) || n <= 0) return "$0";
+  if(n >= 1e6) return "$" + (n/1e6).toFixed(n >= 1e7 ? 1 : 2) + "M";
+  if(n >= 1e4) return "$" + Math.round(n/1e3) + "k";
+  if(n >= 100) return "$" + Math.round(n).toLocaleString("en-US");
+  return "$" + n.toFixed(n >= 10 ? 1 : 2);
+}
+function exact(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
+function num(n, d){ return n.toLocaleString("en-US", {maximumFractionDigits: d === undefined ? 0 : d}); }
+
+/* ═══ sizing: how much iron the chosen model actually needs ═══════════════ */
+function size(peakTps){
+  var m = pick(MODELS, "model"), q = pick(QUANTS, "quant"), g = pick(GPUS, "gpu");
+  var vram = Math.max(1, v("gpuVram")), bw = Math.max(1, v("gpuBw"));
+
+  var weightsGb = m.total * q.bytes;                       /* B params x bytes = GB */
+  var kvGb      = v("batch") * v("ctxK") * 1000 * m.kvMB * q.kv / 1024;
+  var overhead  = weightsGb * 0.15;                        /* activations, graphs, fragmentation */
+  var vramNeed  = weightsGb + kvGb + overhead;
+
+  var gpusPerReplica = Math.max(1, Math.ceil(vramNeed / vram));
+
+  /* Decode is memory-bandwidth bound: each token reads the active weights.
+     Tensor parallelism adds bandwidth; batching amortises the read. */
+  var bytesPerTok  = m.active * q.bytes;                   /* GB read per token */
+  var replicaTps   = (gpusPerReplica * bw / bytesPerTok) * (v("bwEff")/100) * Math.min(v("batch"), 64);
+
+  var replicas = replicaTps > 0 ? Math.max(1, Math.ceil(peakTps / replicaTps)) : 1;
+  var gpus     = replicas * gpusPerReplica;
+
+  /* Disk: the original BF16 release plus the quantised copy you serve. */
+  var storageGb = (m.total * 2 + m.total * q.bytes) * Math.max(1, v("ckpts"));
+
+  return {
+    m:m, q:q, g:g, weightsGb:weightsGb, kvGb:kvGb, vramNeed:vramNeed,
+    gpusPerReplica:gpusPerReplica, replicaTps:replicaTps, replicas:replicas,
+    gpus:gpus, storageGb:storageGb, fitsLaptop: (weightsGb + overhead + 4) <= v("lapRam")
+  };
+}
+
+/* ═══ the cost model ══════════════════════════════════════════════════════ */
+function compute(){
+  var devs = v("devs"), days = v("workdays");
+  var horizon = Math.max(1, v("horizon")), amort = Math.max(1, v("amort"));
+  var inTok  = devs * v("inTok") * 1e6 * days;
+  var outTok = devs * v("outTok") * 1e3 * days;
+  var cached = inTok * Math.min(1, v("cacheShare")/100);
+  var fresh  = inTok - cached;
+  var fteMo  = v("fteCost") / 12;
+
+  /* The open-weight model you can host is not the frontier model you rent.
+     This is the price of that gap, paid in developer hours. */
+  var dragCost = devs * v("codeHrs") * days * (v("drag")/100) * v("devRate");
+  function tokens(i, o, c){ return (fresh/1e6)*i + (cached/1e6)*c + (outTok/1e6)*o; }
+
+  /* Size the fleet on output tokens in the busy hour — decode is where the
+     accelerators actually spend their time. */
+  var peakTps = (days > 0 && v("activeHrs") > 0)
+    ? (outTok / days / (v("activeHrs") * 3600)) * v("peak") : 0;
+
+  var s = size(peakTps);
+  if(devs === 0){ s.gpus = 0; s.replicas = 0; }
+
+  /* An agentic coding session is a near-continuous stream of output tokens
+     while the developer is working. This is the rate one session pulls. */
+  var sessTps = v("codeHrs") > 0 ? (v("outTok") * 1000) / (v("codeHrs") * 3600) : 0;
+  var liveSessions = devs * (v("sessConc") / 100);
+  var demandTps = liveSessions * sessTps;
+
+  /* One laptop serves one session, at whatever its memory bus allows. */
+  var lapTps = (v("lapBw") / Math.max(0.001, s.m.active * s.q.bytes)) * (v("bwEff") / 100);
+  var fleetTps = s.replicas * s.replicaTps;
+
+  var storMo = s.storageGb * v("storGb");
+  var fleetKw = s.gpus * v("gpuW") / 1000 * 1.25;          /* +25% for host, NIC, fans */
+  var hosts   = Math.ceil(s.gpus / 8);
+
+  var rows = [
+    { id:"laptop", name:"Local model on laptops", group:"Your own hardware",
+      note: s.fitsLaptop
+        ? s.m.label + " at " + s.q.label + " needs about " + num(s.weightsGb*1.15) + " GB — it fits in " + num(v("lapRam")) + " GB of unified memory."
+        : s.m.label + " at " + s.q.label + " needs about " + num(s.weightsGb*1.15) + " GB and will not fit in " + num(v("lapRam")) + " GB. Pick a smaller model or a harder quant.",
+      capex: devs * v("lapUplift") / amort,
+      power: devs * (v("lapWatts")/1000) * v("codeHrs") * days * v("kwhOffice"),
+      people: devs * (v("lapSupport")/12) * v("itRate"),
+      usage: 0, drag: dragCost,
+      capTps: devs * lapTps, unitTps: lapTps, perDevScale: true, scaling:"One laptop, one session. Adding developers adds laptops, so it never runs out — it is just slow." },
+
+    { id:"buy", name:"GPUs you buy", group:"Your own hardware",
+      note: s.gpus + " x " + s.g.label + " — " + s.replicas + " replica" + (s.replicas === 1 ? "" : "s")
+        + " of " + s.gpusPerReplica + ". Written down over " + amort + " months. Idle hours cost what busy ones do.",
+      capex: (s.gpus * v("gpuBuy") + hosts * v("hostCost")) / amort,
+      power: fleetKw * v("pue") * 730 * v("kwhDc") + fleetKw * v("coloKw") + storMo,
+      people: v("adminFte") * fteMo,
+      usage: 0, drag: dragCost,
+      capTps: fleetTps, scaling:"Fixed ceiling. Past it you buy another replica and wait months for delivery." },
+
+    { id:"rent", name:"GPUs you rent by the hour", group:"Your own hardware",
+      note: s.gpus + " x " + s.g.label + " on demand at " + v("rentUtil") + "% uptime. No capex, no rack — you pay for every hour the fleet is up, busy or not.",
+      capex: 0,
+      power: storMo,
+      people: v("adminFte") * fteMo,
+      usage: s.gpus * v("gpuRent") * 730 * (v("rentUtil")/100),
+      drag: dragCost,
+      capTps: fleetTps, scaling:"Same ceiling as buying, but you can add replicas in minutes — if the region has stock." },
+
+    { id:"bedrock", name:"AWS Bedrock", group:"Cloud platform",
+      note:"Frontier model inside your AWS account. Same token rate as going direct, plus the people who wire up VPC, IAM and logging.",
+      capex:0, power:0, people: v("cloudOps") * fteMo,
+      usage: tokens(v("bedIn"), v("bedOut"), v("bedCache")), drag:0,
+      capTps: v("bedTpm") * 1000 / 60, scaling:"Bounded by your account quota. Raising it is a support ticket, not a purchase order." },
+
+    { id:"azure", name:"Azure OpenAI", group:"Cloud platform",
+      note:"Frontier model inside your Azure tenant. Same trade as Bedrock: enterprise plumbing costs people, not tokens.",
+      capex:0, power:0, people: v("cloudOps") * fteMo,
+      usage: tokens(v("azIn"), v("azOut"), v("azCache")), drag:0,
+      capTps: v("azTpm") * 1000 / 60, scaling:"Bounded by your deployment quota per region. Add regions to add headroom." },
+
+    { id:"anthropic", name:"Anthropic API", group:"Direct from the lab",
+      note:"Claude, billed per token, nothing in between. Cache rate is the lever — every point of it comes straight off the bill.",
+      capex:0, power:0, people:0,
+      usage: tokens(v("anIn"), v("anOut"), v("anCache")), drag:0,
+      capTps: v("anTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
+
+    { id:"openai", name:"OpenAI API", group:"Direct from the lab",
+      note:"GPT, billed per token, nothing in between. Cheaper per token at list; judge it on tokens burned per finished task.",
+      capex:0, power:0, people:0,
+      usage: tokens(v("oaIn"), v("oaOut"), v("oaCache")), drag:0,
+      capTps: v("oaTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
+
+    { id:"seats", name:"Flat per-seat plans", group:"Direct from the lab",
+      note:"One price per developer per month. Heavy users hit limits; in exchange the bill stops surprising you.",
+      capex:0, power:0, people:0, usage: devs * v("seat"), drag:0,
+      capTps: devs * v("seatTpm") / 60, unitTps: v("seatTpm") / 60, perDevScale: true, scaling:"Scales one seat at a time, but each seat has its own cap — heavy agents hit it." }
+  ];
+
+  rows.forEach(function(r){
+    r.total = r.capex + r.power + r.people + r.usage + r.drag;
+    r.perDev = devs > 0 ? r.total / devs : 0;
+    r.perMOut = outTok > 0 ? r.total / (outTok/1e6) : 0;
+    r.life = r.total * horizon;
+    if(r.perDevScale){
+      /* One laptop, or one seat, per developer. Capacity grows with the team;
+         the real question is whether a single unit keeps up with one session. */
+      r.sessions = devs;
+      r.devsHeld = null;
+      r.headroom = sessTps > 0 ? r.unitTps / sessTps : 0;
+    } else {
+      r.sessions = sessTps > 0 ? r.capTps / sessTps : 0;
+      r.devsHeld = v("sessConc") > 0 ? r.sessions / (v("sessConc")/100) : 0;
+      r.headroom = demandTps > 0 ? r.capTps / demandTps : 0;
+    }
+  });
+  rows.sort(function(a,b){ return a.total - b.total; });
+  return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps,
+           sessTps:sessTps, liveSessions:liveSessions, demandTps:demandTps, lapTps:lapTps };
+}
+
+/* ═══ tooltip ═════════════════════════════════════════════════════════════ */
+var tip = document.getElementById("tip");
+function place(e, html){
+  tip.innerHTML = html; tip.classList.add("on");
+  tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 254) + "px";
+  tip.style.top  = Math.max(8, e.clientY - 52) + "px";
+}
+function hide(){ tip.classList.remove("on"); }
+
+/* ═══ render ══════════════════════════════════════════════════════════════ */
+function render(){
+  var d = compute(), rows = d.rows, s = d.s;
+  var best = rows[0], worst = rows[rows.length - 1];
+  var max = worst.total || 1;
+
+  document.getElementById("kpis").innerHTML =
+      kpi("win",  "Cheapest route",           best.name,  money(best.total) + " a month")
+    + kpi("",     d.horizon + "-month bill",  money(best.life), "for " + d.devs + " developer" + (d.devs === 1 ? "" : "s"))
+    + kpi("lose", "Priciest route",           worst.name, money(worst.total) + " a month")
+    + kpi("",     "Spread",                   money((worst.total - best.total) * d.horizon), "saved by picking first over last");
+
+  /* sizing strip */
+  document.getElementById("sz-summary").textContent =
+    s.m.label + " · " + s.q.label + " · " + s.g.label;
+  document.getElementById("szgrid").innerHTML =
+      sz(num(s.weightsGb) + " GB", "Weights in memory", s.m.total + "B params x " + s.q.bytes + " B")
+    + sz(num(s.kvGb) + " GB", "KV cache", v("batch") + " requests x " + v("ctxK") + "k ctx")
+    + sz(num(s.vramNeed) + " GB", "Memory per replica", "incl. 15% overhead")
+    + sz(s.gpusPerReplica + " x", "Cards per replica", num(v("gpuVram")) + " GB each")
+    + sz(num(s.replicaTps) + " tok/s", "Replica throughput", "decode, all requests")
+    + sz(num(d.peakTps) + " tok/s", "Peak demand", "busy hour, output only")
+    + sz(s.replicas + " x", "Replicas needed", s.gpus + " cards total")
+    + sz(num(s.storageGb/1000, 1) + " TB", "Checkpoint storage", v("ckpts") + " kept on disk");
+
+  document.getElementById("fitflag").innerHTML = s.fitsLaptop
+    ? '<div class="flag ok"><b>Fits a laptop.</b> ' + s.m.label + ' at ' + s.q.label + ' lands in about '
+      + num(s.weightsGb * 1.15) + ' GB, inside ' + num(v("lapRam")) + ' GB of unified memory.</div>'
+    : '<div class="flag no"><b>Too big for a laptop.</b> ' + s.m.label + ' at ' + s.q.label + ' wants about '
+      + num(s.weightsGb * 1.15) + ' GB against ' + num(v("lapRam")) + ' GB available. The laptop row below is priced anyway — read it as the cost of trying.</div>';
+
+  /* capacity */
+  var capOrder = rows.slice().sort(function(a,b){ return b.capTps - a.capTps; });
+  document.getElementById("captbody").innerHTML = capOrder.map(function(r){
+    var h = r.headroom, cls = h >= 1.5 ? "h-ok" : h >= 1 ? "h-mid" : "h-no";
+    var pct = Math.max(3, Math.min(100, h * 50));
+    return '<tr>'
+      + '<td class="nm"><b>' + r.name + '</b><span>' + r.group + '</span></td>'
+      + '<td class="mono">' + num(r.capTps) + ' tok/s</td>'
+      + '<td class="mono">' + num(r.sessions) + '</td>'
+      + '<td class="mono">' + (r.devsHeld === null ? 'scales 1:1' : num(r.devsHeld)) + '</td>'
+      + '<td><div class="hb ' + cls + '"><div class="hbar"><i style="width:' + pct + '%"></i></div>'
+      +   '<span class="hval mono">' + (h >= 10 ? '10x+' : h.toFixed(1) + 'x') + '</span></div></td>'
+      + '</tr>';
+  }).join("");
+
+  document.getElementById("capfoot").innerHTML =
+    'One agentic session pulls about <b class="mono">' + num(d.sessTps, 1) + ' output tok/s</b> while a developer is working '
+    + '(' + num(v("outTok")) + 'k tokens spread over ' + v("codeHrs") + ' hours). At ' + v("sessConc") + '% of '
+    + d.devs + ' developers live at once, that is <b class="mono">' + num(d.liveSessions) + '</b> concurrent sessions and '
+    + '<b class="mono">' + num(d.demandTps) + ' tok/s</b> of demand. Headroom is what each route delivers against that. '
+    + 'Below 1.0x the route throttles and your developers queue. Laptops and per-seat plans scale one unit per developer, '
+    + 'so their headroom is one unit against one session, not a shared pool.';
+
+  /* chart */
+  var axis = "";
+  for(var i = 0; i <= 4; i++) axis += '<span class="mono">' + money(max * i / 4) + '</span>';
+  document.getElementById("axis").innerHTML = axis;
+
+  document.getElementById("rows").innerHTML = rows.map(function(r, i){
+    var blocks = COMPONENTS.map(function(c){
+      if(r[c.key] <= 0) return "";
+      return '<div class="blk" style="flex:' + r[c.key] + ' 0 0;background:' + c.color + '"'
+        + ' data-tip="' + r.name + ' · ' + c.name + '<br><b>' + exact(r[c.key]) + '</b> / month"></div>';
+    }).join("");
+    return '<div class="row' + (i === 0 ? ' top' : '') + '">'
+      + '<div class="lab"><b>' + r.name + '</b><span>' + r.group + '</span></div>'
+      + '<div class="plot"><div class="fill" style="flex:' + (r.total/max) + ' 0 0">' + blocks + '</div>'
+      + '<div style="flex:' + (1 - r.total/max) + ' 0 0"></div></div>'
+      + '<div class="tot mono">' + money(r.total) + '</div></div>';
+  }).join("");
+
+  document.getElementById("legend").innerHTML = COMPONENTS.map(function(c){
+    return '<span><i style="background:' + c.color + '"></i>' + c.name + '</span>';
+  }).join("");
+
+  /* cards */
+  document.getElementById("cards").innerHTML = rows.map(function(r, i){
+    var tag = i === 0 ? '<span class="tag best">Cheapest</span>'
+            : i === rows.length - 1 ? '<span class="tag worst">Priciest</span>'
+            : '<span class="tag">#' + (i + 1) + '</span>';
+    var lines = COMPONENTS.map(function(c){
+      return '<div class="ln' + (r[c.key] > 0 ? '' : ' zero') + '">'
+        + '<span class="nm"><i style="background:' + c.color + '"></i>' + c.name + '</span>'
+        + '<span class="amt mono">' + (r[c.key] > 0 ? exact(r[c.key]) : "—") + '</span></div>';
+    }).join("");
+    return '<article class="card' + (i === 0 ? ' best' : '') + '">'
+      + '<div class="ch"><div><h3>' + r.name + '</h3><div class="grp">' + r.group + '</div></div>' + tag + '</div>'
+      + '<div class="big mono">' + money(r.total) + ' <small>/ month</small></div>'
+      + '<div class="subs"><span><b class="mono">' + money(r.life) + '</b> over ' + d.horizon + ' mo</span>'
+      + '<span><b class="mono">' + money(r.perDev) + '</b> / dev / mo</span>'
+      + '<span><b class="mono">' + money(r.perMOut) + '</b> / 1M out</span>'
+      + '<span><b class="mono">' + num(r.sessions) + '</b> live sessions</span></div>'
+      + '<div class="lines">' + lines + '</div>'
+      + '<p class="note">' + r.note + ' <b style="color:var(--ink-2)">Scale:</b> ' + r.scaling + '</p></article>';
+  }).join("");
+
+  document.getElementById("foot").innerHTML =
+    "<b>This is a model, not a quote.</b> Every rate, card price and model spec is a default typed in from public figures. They move — open the panels and replace them with your own. "
+    + "Memory sizing is weights plus KV cache plus 15%; throughput assumes decode is memory-bandwidth bound, which is the right first-order answer for a batched server and wrong at the edges. "
+    + "The three own-hardware routes carry a developer-time penalty, because the open-weight model you can host is not the frontier model you rent. Set that penalty to 0 and watch the ranking flip — that single field decides the whole argument. "
+    + "Not counted: procurement lead time, security review, fine-tuning, model upgrades, or the cost of shipping a year behind.";
+}
+
+function kpi(cls, k, val, note){
+  return '<div class="kpi ' + cls + '"><div class="k">' + k + '</div><div class="v mono">' + val + '</div><div class="n">' + note + '</div></div>';
+}
+function sz(val, k, n){
+  return '<div class="sz"><div class="k">' + k + '</div><div class="v mono">' + val + '</div><div class="n">' + n + '</div></div>';
+}
+
+/* ═══ behaviours ══════════════════════════════════════════════════════════ */
+document.addEventListener("input", function(e){
+  if(e.target.tagName === "INPUT") render();
+});
+document.getElementById("gpu").addEventListener("change", function(){
+  var g = pick(GPUS, "gpu");
+  document.getElementById("gpuBuy").value  = g.buy;
+  document.getElementById("gpuRent").value = g.rent;
+  document.getElementById("gpuW").value    = g.w;
+  document.getElementById("gpuVram").value = g.vram;
+  document.getElementById("gpuBw").value   = g.bw;
+  render();
+});
+document.getElementById("model").addEventListener("change", render);
+document.getElementById("quant").addEventListener("change", render);
+
+document.addEventListener("mousemove", function(e){
+  var t = e.target.closest ? e.target.closest("[data-tip]") : null;
+  if(t) place(e, t.getAttribute("data-tip")); else hide();
+});
+window.addEventListener("blur", hide);
+
+function applyPreset(name){
+  var p = PRESETS[name]; if(!p) return;
+  Object.keys(p).forEach(function(k){ var el = document.getElementById(k); if(el) el.value = p[k]; });
+  document.querySelectorAll("#presets button").forEach(function(b){
+    b.setAttribute("aria-pressed", b.getAttribute("data-preset") === name ? "true" : "false");
+  });
+  render();
+}
+document.getElementById("presets").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(b) applyPreset(b.getAttribute("data-preset"));
+});
+document.getElementById("resetbtn").addEventListener("click", function(){
+  Object.keys(GROUPS).forEach(function(g){
+    GROUPS[g].forEach(function(f){ document.getElementById(f[0]).value = f[3]; });
+  });
+  document.getElementById("model").value = "gptoss120";
+  document.getElementById("quant").value = "fp8";
+  document.getElementById("gpu").value   = "h100";
+  applyPreset("midsize");
+});
+document.getElementById("themebtn").addEventListener("click", function(){
+  var root = document.documentElement;
+  var dark = root.getAttribute("data-theme") === "dark"
+    || (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.setAttribute("data-theme", dark ? "light" : "dark");
+});
+
+render();
+})();
+</script>
+</body>
+</html>
