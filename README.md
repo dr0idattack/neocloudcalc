@@ -70,8 +70,9 @@ tokens, broken down by where the money goes.
 ## Two modes
 
 **Simple** gives you three levers, because three is what actually moves the
-answer: how many developers, how hard they use it, and how much developer time
-the weaker open-weight model costs you.
+answer: how many developers, how hard they use it, and how often the open-weight
+model gets it right first time. The third shows you live what it costs as a
+percentage of coding time.
 
 **Advanced** opens all six panels — workload, model and precision, money and
 time, accelerators, facility and laptops, and every published rate — plus team
@@ -84,8 +85,10 @@ Works on a phone, a tablet and a desktop.
 1. Start in **Simple**. Set the team size and pick a usage tier.
 2. Drag the **open-model time penalty** to 0 and watch the ranking flip. That
    one field decides the whole argument.
-3. Switch to **Advanced** to pick your model, precision and card, and to replace
-   the list prices in **Model rates** with your contract rates.
+3. Switch to **Advanced** to pick your model, precision and card, replace the
+   list prices in **Model rates** with your contract rates, and put your own
+   numbers in **Effectiveness** — those four fields are the only ones you cannot
+   check against a vendor price list, and they are the ones that decide it.
 
 ## The finding
 
@@ -93,10 +96,21 @@ At 60 developers a frontier API bill is about $200 per developer per month.
 Those developers cost roughly $10,000 each per month in loaded coding time. So a
 **2% productivity penalty costs as much as the entire API bill.**
 
-That is what the **Quality budget** figure shows: the share of developer time
-the self-hosted saving actually buys. When it is smaller than the penalty you
-believe in, no amount of GPU shopping changes the answer. Self-hosting a coding
-model is a bet on the open model being nearly as good — not on it being cheaper.
+The tool no longer asks you to guess that penalty. It derives it from first-pass
+acceptance: a weaker model needs more attempts per accepted task, which costs
+developer minutes **and** burns more tokens for the same shipped work, so the
+self-hosted fleet has to be bigger too. Published real-world first-pass rates on
+production codebases run 35–50% for the best frontier harnesses — well below
+benchmark scores — and open-weight models sit under that.
+
+Every route reports **cost per accepted task**, which is comparable across routes
+in a way cost per developer per month is not, because accepted output is held
+constant.
+
+The **Quality budget** figure shows the share of developer time the self-hosted
+saving actually buys. When it is smaller than what your acceptance gap costs, no
+amount of GPU shopping changes the answer. Self-hosting a coding model is a bet
+on the open model being nearly as good — not on it being cheaper.
 
 ## Health warning
 

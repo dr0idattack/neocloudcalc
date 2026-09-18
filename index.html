@@ -536,15 +536,16 @@ footer b{color:var(--ink-2)}
           </div>
         </div>
         <div class="lever">
-          <div class="lh"><label for="s-drag">Open-model time penalty</label><output id="s-drag-out">15%</output></div>
-          <p class="why">Extra developer hours lost because the model you can host is weaker than the one you rent. Drag this to 0 and the ranking flips.</p>
-          <input type="range" id="s-drag" min="0" max="40" step="1" value="15">
-          <div class="scale"><span>0% — same quality</span><span>40%</span></div>
+          <div class="lh"><label for="s-accept">Open-model first-pass acceptance</label><output id="s-accept-out">34%</output></div>
+          <p class="why">How often the model you host gets it right first time. Published real-world rates on production codebases run 35&ndash;50% for the best frontier harnesses; the default assumes an open model lands below that. Drag it up to match and the ranking flips.</p>
+          <input type="range" id="s-accept" min="10" max="60" step="1" value="34">
+          <div class="scale"><span>10%</span><span id="s-accept-note">costs 0% of coding time</span><span>60%</span></div>
         </div>
       </div>
     </div>
     <details class="panel" open hidden><summary>Team &amp; workload</summary><div class="fields" id="f-team"></div></details>
     <details class="panel" open hidden><summary>Open-weight model</summary><div class="fields" id="f-model"></div></details>
+    <details class="panel" hidden><summary>Effectiveness</summary><div class="fields" id="f-effect"></div></details>
     <details class="panel" hidden><summary>Money &amp; time</summary><div class="fields" id="f-money"></div></details>
     <details class="panel" hidden><summary>Accelerators</summary><div class="fields" id="f-gpu"></div></details>
     <details class="panel" hidden><summary>Facility &amp; laptops</summary><div class="fields" id="f-iron"></div></details>
@@ -604,7 +605,7 @@ footer b{color:var(--ink-2)}
       <div class="sechead"><h2>All eight routes</h2></div>
       <table class="ptbl"><thead><tr>
         <th>Route</th><th>Monthly</th><th>Up front</th><th>Full term</th>
-        <th>Per dev / mo</th><th>Sessions</th><th>Headroom</th>
+        <th>Per dev / mo</th><th>Per task</th><th>Headroom</th>
       </tr></thead><tbody id="p-routes"></tbody></table>
     </section>
 
@@ -699,14 +700,23 @@ var QUANTS = [
    speed. buy is a street price for one card; rent is an hourly on-demand
    rate from a GPU cloud. */
 var GPUS = [
-  {id:"a100",   label:"A100 80GB SXM",    vram:80,  bw:2039, buy:12000, rent:1.10, w:400},
-  {id:"h100",   label:"H100 80GB SXM",    vram:80,  bw:3350, buy:31000, rent:2.40, w:700},
-  {id:"h200",   label:"H200 141GB SXM",   vram:141, bw:4800, buy:34000, rent:3.20, w:700},
-  {id:"b200",   label:"B200 180GB",       vram:180, bw:8000, buy:55000, rent:6.00, w:1000},
-  {id:"mi300x", label:"MI300X 192GB",     vram:192, bw:5300, buy:18000, rent:2.00, w:750},
-  {id:"l40s",   label:"L40S 48GB",        vram:48,  bw:864,  buy:8000,  rent:1.10, w:350},
-  {id:"rtx6000",label:"RTX 6000 Ada 48GB",vram:48,  bw:960,  buy:7000,  rent:0.90, w:300},
-  {id:"rtx5090",label:"RTX 5090 32GB",    vram:32,  bw:1792, buy:2500,  rent:0.70, w:575}
+  {id:"a100",   label:"A100 80GB SXM",    vram:80,  bw:2039, tf:312,  buy:12000, rent:1.10, w:400},
+  {id:"h100",   label:"H100 80GB SXM",    vram:80,  bw:3350, tf:990,  buy:31000, rent:2.40, w:700},
+  {id:"h200",   label:"H200 141GB SXM",   vram:141, bw:4800, tf:990,  buy:34000, rent:3.20, w:700},
+  {id:"b200",   label:"B200 180GB",       vram:180, bw:8000, tf:2250, buy:55000, rent:6.00, w:1000},
+  {id:"mi300x", label:"MI300X 192GB",     vram:192, bw:5300, tf:1300, buy:18000, rent:2.00, w:750},
+  {id:"l40s",   label:"L40S 48GB",        vram:48,  bw:864,  tf:362,  buy:8000,  rent:1.10, w:350},
+  {id:"rtx6000",label:"RTX 6000 Ada 48GB",vram:48,  bw:960,  tf:364,  buy:7000,  rent:0.90, w:300},
+  {id:"rtx5090",label:"RTX 5090 32GB",    vram:32,  bw:1792, tf:838,  buy:2500,  rent:0.70, w:575}
+];
+
+/* Per-seat plans. base is a platform seat the plan rides on: GitHub Copilot
+   Enterprise needs a GitHub Enterprise Cloud seat, which many buyers already
+   hold — hence the entitlement switch, which drops it. */
+var SEATPLANS = [
+  {id:"cursorp",  label:"Cursor Premium",           seat:120, base:0},
+  {id:"cursors",  label:"Cursor Standard",          seat:40,  base:0},
+  {id:"copilot",  label:"GitHub Copilot Enterprise", seat:39,  base:21}
 ];
 
 /* ═══ fields: [id, label, unit, default, step] ════════════════════════════ */
@@ -733,7 +743,14 @@ var GROUPS = {
     ["amort","Hardware write-off","mo",36,1],
     ["devRate","Loaded developer cost","$/h",95,1],
     ["fteCost","Loaded platform engineer","$/yr",260000,5000],
-    ["drag","Open-model time penalty","%",15,1]
+    ["platformFte","Baseline AI platform team","FTE",0.5,0.05],
+    ["apiDiscount","Negotiated API discount","%",0,1]
+  ],
+  "f-effect": [
+    ["tasksDay","Accepted tasks / dev / day","",5,1],
+    ["minPerAttempt","Developer minutes per attempt","min",8,1],
+    ["acceptFrontier","Frontier first-pass acceptance","%",45,1],
+    ["acceptOpen","Open-model first-pass acceptance","%",34,1]
   ],
   "f-gpu": [
     ["gpuBuy","Purchase price / card","$",31000,500],
@@ -741,6 +758,9 @@ var GROUPS = {
     ["gpuW","Card draw","W",700,25],
     ["gpuVram","Memory / card","GB",80,8],
     ["gpuBw","Memory bandwidth","GB/s",3350,50],
+    ["gpuTf","Dense compute","TFLOPS",990,10],
+    ["nodeSize","Accelerators per node","",8,1],
+    ["multiNodeLoss","Multi-node interconnect loss","%",20,1],
     ["hostCost","Host, NIC, fabric / 8 cards","$",45000,1000],
     ["rentUtil","Rented fleet uptime","%",70,5]
   ],
@@ -783,7 +803,8 @@ var GROUPS = {
     ["azIn","Azure · input","$/M",4,0.05],
     ["azOut","Azure · output","$/M",20,0.25],
     ["azCache","Azure · cache read","$/M",0.40,0.01],
-    ["seat","Flat seat price","$/dev/mo",120,5],
+    ["seat","Seat price","$/dev/mo",120,5],
+    ["seatBase","Platform seat it rides on","$/dev/mo",0,1],
     ["cloudOps","Cloud plumbing staff","FTE",0.15,0.05],
     ["anTpm","Anthropic ceiling","k tok/min",2000,100],
     ["oaTpm","OpenAI ceiling","k tok/min",2000,100],
@@ -823,6 +844,10 @@ Object.keys(GROUPS).forEach(function(id){
   }).join("");
   if(id === "f-model") html = selectHTML("model","Model", MODELS, "gptoss120") + selectHTML("quant","Weight precision", QUANTS, "fp8") + html;
   if(id === "f-gpu")   html = selectHTML("gpu","Accelerator", GPUS, "h100") + html;
+  if(id === "f-rates") html = selectHTML("seatPlan","Per-seat plan", SEATPLANS, "cursorp")
+    + '<div class="f wide"><label class="switch" for="ownsBase" style="font-size:11px">'
+    + '<input type="checkbox" id="ownsBase"><span class="track"></span>'
+    + '<span>We already pay for the platform seat</span></label></div>' + html;
   document.getElementById(id).innerHTML = html;
 });
 
@@ -849,7 +874,7 @@ function exact(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
 function num(n, d){ return n.toLocaleString("en-US", {maximumFractionDigits: d === undefined ? 0 : d}); }
 
 /* ═══ sizing: how much iron the chosen model actually needs ═══════════════ */
-function size(peakTps){
+function size(peakTps, tokenMult){
   var m = pick(MODELS, "model"), q = pick(QUANTS, "quant"), g = pick(GPUS, "gpu");
   var vram = Math.max(1, v("gpuVram")), bw = Math.max(1, v("gpuBw"));
 
@@ -858,7 +883,22 @@ function size(peakTps){
   var overhead  = weightsGb * 0.15;                        /* activations, graphs, fragmentation */
   var vramNeed  = weightsGb + kvGb + overhead;
 
-  var gpusPerReplica = Math.max(1, Math.ceil(vramNeed / vram));
+  /* Tensor parallelism is not an arbitrary card count. Inside a node it wants a
+     power of two; past the node it wants whole nodes, and crossing that boundary
+     costs real throughput because the fabric between nodes is far slower than
+     the one inside. Nine cards is not "one more than eight". */
+  var nodeSize = Math.max(1, Math.round(v("nodeSize")));
+  var raw = Math.max(1, Math.ceil(vramNeed / vram));
+  var gpusPerReplica;
+  if(raw <= nodeSize){
+    gpusPerReplica = 1;
+    while(gpusPerReplica < raw && gpusPerReplica < nodeSize) gpusPerReplica *= 2;
+  } else {
+    gpusPerReplica = Math.ceil(raw / nodeSize) * nodeSize;
+  }
+  var nodesPerReplica = Math.ceil(gpusPerReplica / nodeSize);
+  var multiNode = nodesPerReplica > 1;
+  var linkEff = multiNode ? Math.max(0.05, 1 - v("multiNodeLoss") / 100) : 1;
 
   /* Decode is memory-bandwidth bound: each token reads the active weights.
      Tensor parallelism adds bandwidth; batching amortises the read.
@@ -877,20 +917,29 @@ function size(peakTps){
      sampling cap a single stream far below the weights-read limit. 250 tok/s
      is that ceiling, and it is editable. */
   var bytesPerTok  = m.active * q.bytes;                   /* GB read per token */
-  var perStream    = Math.min((gpusPerReplica * bw / bytesPerTok) * (v("bwEff")/100),
+  var perStream    = Math.min((gpusPerReplica * bw * linkEff / bytesPerTok) * (v("bwEff")/100),
                               v("streamCap"));
   var replicaTps   = perStream * Math.min(v("batch"), 32);
 
   var replicas = replicaTps > 0 ? Math.max(1, Math.ceil(peakTps / replicaTps)) : 1;
   var gpus     = replicas * gpusPerReplica;
 
+  /* Prefill is compute bound, so it gets the FLOPs treatment rather than the
+     bandwidth one. This is time to first token on a cold context with nothing
+     cached — prefix caching, chunked prefill and queueing all move it. */
+  var prefillFlops = 2 * m.active * 1e9 * v("ctxK") * 1000;
+  var computeFlops = gpusPerReplica * v("gpuTf") * 1e12 * linkEff * (v("bwEff") / 100);
+  var ttft = computeFlops > 0 ? prefillFlops / computeFlops : 0;
+
   /* Disk: the original BF16 release plus the quantised copy you serve. */
   var storageGb = (m.total * 2 + m.total * q.bytes) * Math.max(1, v("ckpts"));
 
   return {
-    m:m, q:q, g:g, weightsGb:weightsGb, kvGb:kvGb, vramNeed:vramNeed,
-    gpusPerReplica:gpusPerReplica, replicaTps:replicaTps, perStream:perStream, replicas:replicas,
-    gpus:gpus, storageGb:storageGb, fitsLaptop: (weightsGb + overhead + 4) <= v("lapRam")
+    m:m, q:q, g:g, weightsGb:weightsGb, kvGb:kvGb, vramNeed:vramNeed, rawCards:raw,
+    gpusPerReplica:gpusPerReplica, nodesPerReplica:nodesPerReplica, multiNode:multiNode,
+    replicaTps:replicaTps, perStream:perStream, replicas:replicas, ttft:ttft,
+    gpus:gpus, storageGb:storageGb, tokenMult:tokenMult,
+    fitsLaptop: (weightsGb + overhead + 4) <= v("lapRam")
   };
 }
 
@@ -904,17 +953,45 @@ function compute(){
   var fresh  = inTok - cached;
   var fteMo  = v("fteCost") / 12;
 
-  /* The open-weight model you can host is not the frontier model you rent.
-     This is the price of that gap, paid in developer hours. */
-  var dragCost = devs * v("codeHrs") * days * (v("drag")/100) * v("devRate");
-  function tokens(i, o, c){ return (fresh/1e6)*i + (cached/1e6)*c + (outTok/1e6)*o; }
+  /* ── effectiveness ──────────────────────────────────────────────────
+     The old model charged a flat "open-model time penalty", which was an
+     effectiveness assumption wearing an infrastructure costume. This derives
+     it instead, from what actually differs: how often a first attempt is
+     accepted. Published real-world first-pass rates on production codebases
+     run 35-50% for the best agent harnesses, well under benchmark scores.
+
+     Two consequences fall out, and the second is easy to miss. A weaker model
+     needs more attempts per accepted task, so it costs more developer minutes
+     AND burns more tokens for the same shipped work. Holding accepted output
+     constant is the only fair comparison. */
+  var aF = Math.max(1, Math.min(100, v("acceptFrontier"))) / 100;
+  var aO = Math.max(1, Math.min(100, v("acceptOpen"))) / 100;
+  var attemptsF = 1 / aF, attemptsO = 1 / aO;
+  var openTokenMult = attemptsO / attemptsF;
+
+  var extraMinPerTask = v("minPerAttempt") * (attemptsO - attemptsF);
+  var dragHours = devs * v("tasksDay") * days * extraMinPerTask / 60;
+  var dragCost  = dragHours * v("devRate");
+  var codingHours = devs * v("codeHrs") * days;
+  var acceptedTasksMo = devs * v("tasksDay") * days;
+  var dragPct = codingHours > 0 ? dragHours / codingHours * 100 : 0;
+
+  /* Negotiated rates apply to metered tokens, never to seats. */
+  var disc = Math.max(0, 1 - v("apiDiscount") / 100);
+  function tokens(i, o, c){
+    return ((fresh/1e6)*i + (cached/1e6)*c + (outTok/1e6)*o) * disc;
+  }
+
+  /* Self-hosted routes serve the larger token volume, because the open model
+     needs more attempts to ship the same work. */
+  var outTokOwn = outTok * openTokenMult, inTokOwn = inTok * openTokenMult;
 
   /* Size the fleet on output tokens in the busy hour — decode is where the
      accelerators actually spend their time. */
   var peakTps = (days > 0 && v("activeHrs") > 0)
-    ? (outTok / days / (v("activeHrs") * 3600)) * v("peak") : 0;
+    ? (outTokOwn / days / (v("activeHrs") * 3600)) * v("peak") : 0;
 
-  var s = size(peakTps);
+  var s = size(peakTps, openTokenMult);
   if(devs === 0){ s.gpus = 0; s.replicas = 0; }
 
   /* An agentic coding session is a near-continuous stream of output tokens
@@ -950,6 +1027,14 @@ function compute(){
   var adminMo     = labourOn() ? v("adminFte") * fteMo : 0;
   var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo : 0;
 
+  /* Every centralised route needs a gateway, secrets, IAM, observability,
+     evals, rate-limit handling, cost controls and a security review. Charging
+     that only to the cloud platforms quietly flattered the direct APIs, which
+     was a fairness bug rather than a modelling choice. Laptops are exempt:
+     nothing is centralised. Bedrock, Azure and self-hosting pay this PLUS
+     their own incremental team. */
+  var platformMo  = labourOn() ? v("platformFte") * fteMo : 0;
+
   /* Renting skips the hardware but not the bring-up: you still stand up the
      serving stack, evaluate the model and pass a security review. */
   var rentSetup   = labourOn()
@@ -980,7 +1065,7 @@ function compute(){
       upfront: buyUpfront,
       capex: hwCapex / amort,
       power: fleetKw * v("pue") * 730 * v("kwhDc") + fleetKw * v("coloKw") + storMo + warrantyMo,
-      people: adminMo + setupLabour / amort,
+      people: platformMo + adminMo + setupLabour / amort,
       usage: 0, drag: dragCost,
       capTps: fleetTps, scaling:"Fixed ceiling. Past it you buy another replica and wait months for delivery." },
 
@@ -989,38 +1074,39 @@ function compute(){
       upfront: rentSetup,
       capex: 0,
       power: storMo,
-      people: adminMo + rentSetup / amort,
+      people: platformMo + adminMo + rentSetup / amort,
       usage: s.gpus * v("gpuRent") * 730 * (v("rentUtil")/100),
       drag: dragCost,
       capTps: fleetTps, scaling:"Same ceiling as buying, but you can add replicas in minutes — if the region has stock." },
 
     { id:"bedrock", name:"AWS Bedrock", group:"Cloud platform",
       note:"Frontier model inside your AWS account. Same token rate as going direct, plus the people who wire up VPC, IAM and logging.",
-      upfront:0, capex:0, power:0, people: cloudOpsMo,
+      upfront:0, capex:0, power:0, people: platformMo + cloudOpsMo,
       usage: tokens(v("bedIn"), v("bedOut"), v("bedCache")), drag:0,
       capTps: v("bedTpm") * 1000 / 60, scaling:"Bounded by your account quota. Raising it is a support ticket, not a purchase order." },
 
     { id:"azure", name:"Azure OpenAI", group:"Cloud platform",
       note:"Frontier model inside your Azure tenant. Same trade as Bedrock: enterprise plumbing costs people, not tokens.",
-      upfront:0, capex:0, power:0, people: cloudOpsMo,
+      upfront:0, capex:0, power:0, people: platformMo + cloudOpsMo,
       usage: tokens(v("azIn"), v("azOut"), v("azCache")), drag:0,
       capTps: v("azTpm") * 1000 / 60, scaling:"Bounded by your deployment quota per region. Add regions to add headroom." },
 
     { id:"anthropic", name:"Anthropic API", group:"Direct from the lab",
       note:"Claude, billed per token, nothing in between. Cache rate is the lever — every point of it comes straight off the bill.",
-      upfront:0, capex:0, power:0, people:0,
+      upfront:0, capex:0, power:0, people: platformMo,
       usage: tokens(v("anIn"), v("anOut"), v("anCache")), drag:0,
       capTps: v("anTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
 
     { id:"openai", name:"OpenAI API", group:"Direct from the lab",
       note:"GPT, billed per token, nothing in between. Cheaper per token at list; judge it on tokens burned per finished task.",
-      upfront:0, capex:0, power:0, people:0,
+      upfront:0, capex:0, power:0, people: platformMo,
       usage: tokens(v("oaIn"), v("oaOut"), v("oaCache")), drag:0,
       capTps: v("oaTpm") * 1000 / 60, scaling:"Bounded by your rate-limit tier, which rises with spend." },
 
     { id:"seats", name:"Flat per-seat plans", group:"Direct from the lab",
       note:"One price per developer per month. Heavy users hit limits; in exchange the bill stops surprising you.",
-      upfront:0, capex:0, power:0, people:0, usage: devs * v("seat"), drag:0,
+      upfront:0, capex:0, power:0, people: platformMo,
+      usage: devs * (v("seat") + (document.getElementById("ownsBase") && document.getElementById("ownsBase").checked ? 0 : v("seatBase"))), drag:0,
       capTps: devs * v("seatTpm") / 60, unitTps: v("seatTpm") / 60, perDevScale: true, scaling:"Scales one seat at a time, but each seat has its own cap — heavy agents hit it." }
   ];
 
@@ -1028,6 +1114,9 @@ function compute(){
     r.total = r.capex + r.power + r.people + r.usage + r.drag;
     r.perDev = devs > 0 ? r.total / devs : 0;
     r.perMOut = outTok > 0 ? r.total / (outTok/1e6) : 0;
+    /* Accepted tasks are held constant across routes by construction, so this
+       is comparable in a way cost per developer per month is not. */
+    r.perTask = acceptedTasksMo > 0 ? r.total / acceptedTasksMo : 0;
     r.life = r.total * horizon;
     r.upfront = r.upfront || 0;
     /* Accounting view spreads capital over the write-off period. Cash view is
@@ -1064,8 +1153,11 @@ function compute(){
 
   rows.sort(function(a,b){ return a.total - b.total; });
   return { rows:rows, horizon:horizon, devs:devs, s:s, peakTps:peakTps, bom:BOM,
-           amort:amort, labour:labourOn(),
-           qualityBudget:qualityBudget, qualityPct:qualityPct, dragSet:v("drag"),
+           amort:amort, labour:labourOn(), platformMo:platformMo,
+           attemptsF:attemptsF, attemptsO:attemptsO, openTokenMult:openTokenMult,
+           acceptedTasksMo:acceptedTasksMo,
+           dragHours:dragHours, dragPct:dragPct,
+           qualityBudget:qualityBudget, qualityPct:qualityPct, dragSet:dragPct,
            sessTps:sessTps, liveSessions:liveSessions, demandTps:demandTps, lapTps:lapTps };
 }
 
@@ -1096,7 +1188,7 @@ function render(){
           (d.qualityPct > 0 ? d.qualityPct.toFixed(1) : "0") + "%",
           d.qualityPct <= 0
             ? "self-hosting costs more even at equal quality"
-            : "developer time the self-hosted saving buys \u2014 you set the penalty at " + d.dragSet + "%")
+            : "developer time the self-hosted saving buys \u2014 your acceptance gap costs " + d.dragPct.toFixed(1) + "%")
     + kpi("", "Year-one cash", money(best.yearOne),
           best.upfront > 0 ? exact(best.upfront) + " of it up front" : "no capital outlay");
 
@@ -1107,11 +1199,16 @@ function render(){
       sz(num(s.weightsGb) + " GB", "Weights in memory", s.m.total + "B params x " + s.q.bytes + " B")
     + sz(num(s.kvGb) + " GB", "KV cache", v("batch") + " requests x " + v("ctxK") + "k ctx")
     + sz(num(s.vramNeed) + " GB", "Memory per replica", "incl. 15% overhead")
-    + sz(s.gpusPerReplica + " x", "Cards per replica", num(v("gpuVram")) + " GB each")
+    + sz(s.gpusPerReplica + " x", "Cards per replica",
+         s.rawCards + " needed, snapped to " + (s.multiNode ? s.nodesPerReplica + " nodes" : "a power of two"))
     + sz(num(s.replicaTps) + " tok/s", "Replica throughput", num(s.perStream) + " tok/s x " + Math.min(v("batch"), 32) + " streams")
     + sz(num(d.peakTps) + " tok/s", "Peak demand", "busy hour, output only")
     + sz(s.replicas + " x", "Replicas needed", s.gpus + " cards total")
-    + sz(num(s.storageGb/1000, 1) + " TB", "Checkpoint storage", v("ckpts") + " kept on disk");
+    + sz(num(s.storageGb/1000, 1) + " TB", "Checkpoint storage", v("ckpts") + " kept on disk")
+    + sz(s.ttft < 1 ? Math.round(s.ttft * 1000) + " ms" : s.ttft.toFixed(1) + " s",
+         "Time to first token", v("ctxK") + "k cold prefill, nothing cached")
+    + sz(s.tokenMult.toFixed(2) + " x", "Token volume vs frontier",
+         "more attempts per accepted task");
 
   document.getElementById("fitflag").innerHTML = s.fitsLaptop
     ? '<div class="flag ok"><b>Fits a laptop.</b> ' + s.m.label + ' at ' + s.q.label + ' lands in about '
@@ -1179,13 +1276,16 @@ function render(){
       + '<div class="big mono">' + money(r.total) + ' <small>/ month</small></div>'
       + '<div class="subs"><span><b class="mono">' + money(r.life) + '</b> over ' + d.horizon + ' mo</span>'
       + '<span><b class="mono">' + money(r.perDev) + '</b> / dev / mo</span>'
-      + '<span><b class="mono">' + money(r.perMOut) + '</b> / 1M out</span>'
+      + '<span><b class="mono">' + money(r.perTask) + '</b> / accepted task</span>'
       + '<span><b class="mono">' + num(r.sessions) + '</b> live sessions</span></div>'
       + '<div class="lines">' + lines + '</div>'
       + '<p class="note">' + r.note + ' <b style="color:var(--ink-2)">Scale:</b> ' + r.scaling + '</p></article>';
   }).join("");
 
   renderCash(d); renderBom(d); renderSens(d); renderBeyond(d); renderPrint(d);
+
+  var an = document.getElementById("s-accept-note");
+  if(an) an.textContent = "costs " + d.dragPct.toFixed(1) + "% of coding time";
 
   document.getElementById("ex-note").innerHTML =
     "<b style=\"color:var(--ink-2)\">Print</b> gives a clean document: the verdict, all eight routes, "
@@ -1197,7 +1297,8 @@ function render(){
   document.getElementById("foot").innerHTML =
     "<b>This is a model, not a quote.</b> Every rate, card price and model spec is a default typed in from public figures. They move — open the panels and replace them with your own. "
     + "Memory sizing is weights plus KV cache plus 15%; throughput assumes decode is memory-bandwidth bound, which is the right first-order answer for a batched server and wrong at the edges. "
-    + "The three own-hardware routes carry a developer-time penalty, because the open-weight model you can host is not the frontier model you rent. Set that penalty to 0 and watch the ranking flip — that single field decides the whole argument. "
+    + "The developer-time penalty on the own-hardware routes is no longer a flat percentage you type in. It is derived from first-pass acceptance: a weaker model needs more attempts per accepted task, which costs developer minutes and burns more tokens for the same shipped work. "
+    + "Published real-world first-pass rates on production codebases run 35\u201350% for the best frontier harnesses, well below benchmark scores, and open-weight models sit under that. Raise open-model acceptance to match the frontier and the ranking flips \u2014 that pair of fields decides the whole argument, so they are the ones to measure on your own repositories rather than accept from anyone, this tool included. "
     + "Not counted: procurement lead time, security review, fine-tuning, model upgrades, or the cost of shipping a year behind.";
 }
 
@@ -1301,10 +1402,10 @@ function renderCash(d){
           : late ? "past your " + d.horizon + "-month horizon" : "against " + hosted.name)
       + '</div></div>';
   });
-  var beNow = breakEvenDevs(d.dragSet), beEqual = breakEvenDevs(0);
+  var beNow = breakEvenDevs(false), beEqual = breakEvenDevs(true);
   cx += '<div class="cx ' + (beNow ? "yes" : "no") + '"><div class="k">Owning wins above</div>'
      + '<div class="v">' + (beNow ? beNow + " devs" : "No team size") + '</div>'
-     + '<div class="n">at your ' + d.dragSet + '% quality penalty</div></div>'
+     + '<div class="n">at ' + v("acceptOpen") + '% open-model acceptance</div></div>'
      + '<div class="cx ' + (beEqual ? "yes" : "no") + '"><div class="k">At equal quality, above</div>'
      + '<div class="v">' + (beEqual ? beEqual + " devs" : "No team size") + '</div>'
      + '<div class="n">penalty set to 0% — the pure infrastructure case</div></div>';
@@ -1312,9 +1413,11 @@ function renderCash(d){
 }
 
 /* Smallest team at which owning beats renting tokens, over the full horizon. */
-function breakEvenDevs(dragPct){
+function breakEvenDevs(equalQuality){
   for(var n = 5; n <= 2000; n += (n < 100 ? 5 : 25)){
-    var o = withOv({devs:n, drag:dragPct}, compute);
+    var ov = {devs:n};
+    if(equalQuality) ov.acceptOpen = v("acceptFrontier");
+    var o = withOv(ov, compute);
     var own = Math.min(byId(o, "buy").lifeCash, byId(o, "rent").lifeCash);
     if(own < cheapestHosted(o).lifeCash) return n;
   }
@@ -1359,7 +1462,7 @@ function renderBom(d){
     + line("Hardware support", v("warranty") + "%/yr of capex", b.warrantyMo)
     + line("Platform engineering" + (L ? "" : " (excluded)"), v("adminFte") + " FTE", b.adminMo, L ? "" : "off")
     + line("Setup labour, written down", "over " + d.amort + " mo", b.setupLabour / d.amort, L ? "" : "off")
-    + line("Developer time lost", v("drag") + "% penalty", buy.drag)
+    + line("Developer time lost", d.dragPct.toFixed(1) + "% of coding time", buy.drag)
     + '<tr class="tot"><td>Monthly run rate</td><td></td><td class="mono">' + exact(buy.monthlyCash) + '</td></tr>';
 
   document.getElementById("bombody").innerHTML = h;
@@ -1394,16 +1497,18 @@ function renderSens(d){
   }
   var base = margin(d);
   var knobs = [
-    ["drag","Open-model penalty"], ["outTok","Output tokens / dev"], ["inTok","Input tokens / dev"],
+    ["acceptOpen","Open-model acceptance"], ["acceptFrontier","Frontier acceptance"],
+    ["tasksDay","Tasks per dev per day"], ["minPerAttempt","Minutes per attempt"],
+    ["outTok","Output tokens / dev"], ["inTok","Input tokens / dev"],
     ["cacheShare","Cache hit rate"], ["devs","Team size"], ["gpuBuy","Card price"],
     ["devRate","Loaded developer cost"], ["fteCost","Platform engineer cost"],
-    ["seat","Seat price"], ["batch","Requests per replica"]
+    ["platformFte","Baseline platform team"], ["seat","Seat price"], ["batch","Requests per replica"]
   ];
   var rows = knobs.map(function(k){
     var cur = v(k[0]), o = {};
     var lo = cur * 0.7, hi = cur * 1.3;
     if(k[0] === "cacheShare") hi = Math.min(100, hi);
-    if(k[0] === "drag" && cur === 0){ lo = 0; hi = 5; }          /* a zero knob still has a direction */
+    if(k[0] === "acceptOpen" || k[0] === "acceptFrontier") hi = Math.min(100, hi);
     o[k[0]] = lo; var a = margin(withOv(o, compute));
     o = {}; o[k[0]] = hi; var b = margin(withOv(o, compute));
     return {name:k[1], lo:Math.min(a,b), hi:Math.max(a,b), span:Math.abs(b - a)};
@@ -1467,7 +1572,7 @@ function runLine(d){
   return d.devs + " developer" + (d.devs === 1 ? "" : "s") + " · "
     + v("inTok") + "M in / " + v("outTok") + "k out per developer per day · "
     + v("cacheShare") + "% cache · " + d.horizon + "-month horizon · "
-    + v("drag") + "% open-model penalty · "
+    + v("acceptFrontier") + "% frontier vs " + v("acceptOpen") + "% open first-pass acceptance · "
     + plain(d.s.m.label) + " at " + plain(d.s.q.label) + " on " + plain(d.s.g.label) + " · "
     + (d.labour ? "labour counted" : "labour excluded");
 }
@@ -1483,7 +1588,7 @@ function renderPrint(d){
       + '<td>' + (r.upfront > 0 ? exact(r.upfront) : "—") + '</td>'
       + '<td>' + exact(r.lifeCash) + '</td>'
       + '<td>' + exact(r.perDev) + '</td>'
-      + '<td>' + num(r.sessions) + '</td>'
+      + '<td>' + money(r.perTask) + '</td>'
       + '<td>' + (r.headroom >= 10 ? "10x+" : r.headroom.toFixed(1) + "x") + '</td></tr>';
   }).join("");
 
@@ -1534,18 +1639,24 @@ function buildCsv(d){
    ["Memory per replica", d.s.vramNeed, "GB"], ["Cards per replica", d.s.gpusPerReplica, "cards"],
    ["Single stream", d.s.perStream, "tok/s"], ["Replica throughput", d.s.replicaTps, "tok/s"],
    ["Peak demand", d.peakTps, "tok/s"], ["Replicas", d.s.replicas, "replicas"],
-   ["Cards total", d.s.gpus, "cards"], ["Checkpoint storage", d.s.storageGb, "GB"]
+   ["Cards total", d.s.gpus, "cards"], ["Checkpoint storage", d.s.storageGb, "GB"],
+   ["Time to first token", d.s.ttft, "s"], ["Token volume vs frontier", d.s.tokenMult, "x"],
+   ["Attempts per accepted task, frontier", d.attemptsF, ""],
+   ["Attempts per accepted task, open", d.attemptsO, ""],
+   ["Derived open-model penalty", d.dragPct, "% of coding time"],
+   ["Accepted tasks per month", d.acceptedTasksMo, "tasks"]
   ].forEach(function(r){ L.push([q(r[0]), Math.round(r[1] * 100) / 100, q(r[2])].join(",")); });
   L.push("");
 
   L.push(q("ROUTE COMPARISON"));
   L.push(["route", "group", "monthly", "up front", "cash over " + d.horizon + " months",
-          "per dev per month", "per 1M output", "live sessions", "developers", "headroom x",
+          "per dev per month", "per accepted task", "per 1M output", "live sessions", "developers", "headroom x",
           "hardware", "power rack storage", "people", "tokens seats rent", "developer time lost"
          ].map(q).join(","));
   d.rows.forEach(function(r){
     L.push([q(r.name), q(r.group), Math.round(r.total), Math.round(r.upfront), Math.round(r.lifeCash),
-            Math.round(r.perDev), Math.round(r.perMOut * 100) / 100, Math.round(r.sessions),
+            Math.round(r.perDev), Math.round(r.perTask * 100) / 100,
+            Math.round(r.perMOut * 100) / 100, Math.round(r.sessions),
             r.devsHeld === null ? q("scales 1:1") : Math.round(r.devsHeld),
             Math.round(r.headroom * 100) / 100,
             Math.round(r.capex), Math.round(r.power), Math.round(r.people),
@@ -1575,7 +1686,7 @@ function buildCsv(d){
     ["Recurring monthly", "Hardware support", v("warranty") + "%/yr", b.warrantyMo],
     ["Recurring monthly", "Platform engineering", v("adminFte") + " FTE", b.adminMo],
     ["Recurring monthly", "Setup labour written down", "over " + d.amort + " mo", b.setupLabour / d.amort],
-    ["Recurring monthly", "Developer time lost", v("drag") + "%", buy.drag],
+    ["Recurring monthly", "Developer time lost", d.dragPct.toFixed(1) + "% of coding time", buy.drag],
     ["Total", "Monthly run rate", "", buy.monthlyCash],
     ["Total", "Cash over " + d.horizon + " months", "", buy.lifeCash]
   ];
@@ -1660,6 +1771,7 @@ window.addEventListener("beforeprint", render);
 window.addEventListener("afterprint", render);
 document.getElementById("gpu").addEventListener("change", function(){
   var g = pick(GPUS, "gpu");
+  document.getElementById("gpuTf").value   = g.tf;
   document.getElementById("gpuBuy").value  = g.buy;
   document.getElementById("gpuRent").value = g.rent;
   document.getElementById("gpuW").value    = g.w;
@@ -1668,6 +1780,13 @@ document.getElementById("gpu").addEventListener("change", function(){
   render();
 });
 document.getElementById("model").addEventListener("change", render);
+document.getElementById("ownsBase").addEventListener("change", render);
+document.getElementById("seatPlan").addEventListener("change", function(){
+  var pl = pick(SEATPLANS, "seatPlan");
+  document.getElementById("seat").value = pl.seat;
+  document.getElementById("seatBase").value = pl.base;
+  render();
+});
 document.getElementById("quant").addEventListener("change", render);
 
 document.addEventListener("mousemove", function(e){
@@ -1736,7 +1855,7 @@ function bindLever(sliderId, targetId, fmt){
   };
 }
 var syncDevs = bindLever("s-devs", "devs", function(x){ return x; });
-var syncDrag = bindLever("s-drag", "drag", function(x){ return x + "%"; });
+var syncDrag = bindLever("s-accept", "acceptOpen", function(x){ return x + "%"; });
 
 function setMode(mode){
   var simple = mode === "simple";
