@@ -1,7 +1,7 @@
 # neocloudcalc
 
 **What a coding model really costs.** A single-page calculator that compares the
-three-year total cost of ownership of an AI coding assistant across nine ways to
+three-year total cost of ownership of an AI coding assistant across ten ways to
 run one — and tells you how many developers each one can actually carry.
 
 Open `index.html` in a browser. That is the whole app. No build step, no install,
@@ -16,13 +16,14 @@ all. Not just a price per token.
 
 This puts all of it on one scale.
 
-## The nine routes
+## The ten routes
 
 | Route | Group | Cost is mostly |
 | --- | --- | --- |
 | Local model on laptops | Your own hardware | Laptop uplift + lost developer time |
 | GPUs you buy | Your own hardware | Card capex, power, rack, platform staff |
 | GPUs you rent by the hour | Your own hardware | Hourly card rent |
+| Open model, hosted by someone else | Serverless open weights | Tokens + aggregator fee + baseline platform team |
 | AWS Bedrock | Cloud platform | Tokens + cloud plumbing staff |
 | Azure OpenAI | Cloud platform | Tokens + cloud plumbing staff |
 | Anthropic API | Direct from the lab | Tokens + baseline platform team |
@@ -34,6 +35,8 @@ Every centralised route carries a baseline platform team — a gateway, secrets,
 IAM, observability, evals and a security review do not appear only because the
 endpoint is Bedrock. Bedrock, Azure and the self-hosted routes pay that **plus**
 their own incremental staff. A switch zeroes it if you already run one.
+Staffing now ramps with team size (reaching full strength at 20 developers by default),
+so a solo dev or small team is not billed a full enterprise platform team against a small token bill.
 
 Every route is scored on the same five components — hardware written down, power
 and rack and storage, people, tokens and seats and GPU rent, and developer time
@@ -41,10 +44,20 @@ lost — so the bars stack on one scale.
 
 ## What it works out for you
 
+**The recommendation up front.** Every mode leads with a plain verdict. At small
+team sizes (3 or fewer by default) it names the cheapest flat plan that keeps up
+with a live session and prices serverless metered tokens beside it. Above that, it
+quotes the winning route and the conditions that would overturn it.
+
 **Cash, month by month.** Capital lands on day one; the cumulative chart shows
 the cheque, not the accounting entry, and marks the month each self-hosted route
 catches renting tokens — or says plainly that it never does. Plus the team size
 above which owning wins, both at your quality assumption and at equal quality.
+
+**Model simulation.** Price the same month of work across frontier rate cards
+(Claude Sonnet 5, Opus 5, Haiku 4.5, GPT-5.6 Sol) and serverless open weights,
+and replay the entire cost model on each set of open weights to see what each
+costs to own. An interactive **Use** button loads any selection into the rail.
 
 **A bill of materials.** If you are set on owning the iron, the itemised list
 that goes to procurement: cards, spares, chassis, fabric, rack and smart hands,
@@ -67,26 +80,18 @@ a laptop at all.
 
 **Capacity.** How many concurrent agentic coding sessions each route can sustain,
 how many developers that is, and the headroom against your actual demand. Below
-1.0× the route throttles and your developers queue. This is where per-seat plans
-get interesting.
+1.0× the route throttles and your developers queue. Individual hobby plans and
+enterprise seats carry their own speed limits.
 
 **Cost.** Monthly and over the full horizon, per developer and per million output
 tokens, broken down by where the money goes.
 
-## Two modes
+## Four readers, four modes
 
-**Simple** gives you three levers, because three is what actually moves the
-answer: how many developers, how hard they use it, and how often the open-weight
-model gets it right first time. The third shows you live what it costs as a
-percentage of coding time.
-
-Effectiveness comes as named profiles — Optimistic, Observed, Conservative,
-Custom — anchored on SWE-bench Pro pass@1, which spans roughly 27–60% and is far
-from saturated. Touch any of the six fields and the profile drops to Custom.
-
-**Advanced** opens all six panels — workload, model and precision, money and
-time, accelerators, facility and laptops, and every published rate — plus team
-presets for Solo, Startup, Midsize and Enterprise.
+- **Overview (for leadership / CIO)**: Leads with the recommendation, what would overturn it, three simple levers, the model comparison tables, and non-cost factors.
+- **Advanced (for engineering management / VP)**: Operational view showing all ten routes, capacity headroom, the sensitivity pass, the cost chart, and route cards.
+- **Money (for finance / CFO)**: Cash timing by year, the capital vs operating split, buying vs renting iron, and what stopping costs (including stranded hardware).
+- **Build (for infra / CTO)**: Sizing, capacity, and the full itemised bill of materials without preconceived verdicts.
 
 Works on a phone, a tablet and a desktop.
 

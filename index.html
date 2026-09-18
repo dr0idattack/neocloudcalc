@@ -935,7 +935,7 @@ var GROUPS = {
     ["oaTpm","OpenAI ceiling","k tok/min",2000,100],
     ["bedTpm","Bedrock quota","k tok/min",1000,100],
     ["azTpm","Azure quota","k tok/min",1000,100],
-    ["seatTpm","Per-seat ceiling","tok/min",900,50]
+    ["seatTpm","Per-seat ceiling","tok/min",2200,50]
   ]
 };
 
@@ -1230,8 +1230,6 @@ function compute(){
   var hwCapex     = cards + sparesCost + chassis + fabric + install;
   var buyUpfront  = hwCapex + setupLabour;
   var warrantyMo  = hwCapex * (v("warranty") / 100) / 12;
-  var adminMo     = labourOn() ? v("adminFte") * fteMo * teamRamp : 0;
-  var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo * teamRamp : 0;
 
   /* Every centralised route needs a gateway, secrets, IAM, observability,
      evals, rate-limit handling, cost controls and a security review. Charging
@@ -1248,6 +1246,8 @@ function compute(){
      setup labour does NOT ramp \u2014 standing up a serving stack is the same
      work whoever it is for. */
   var teamRamp    = v("platformAt") > 0 ? Math.min(1, devs / v("platformAt")) : 1;
+  var adminMo     = labourOn() ? v("adminFte") * fteMo * teamRamp : 0;
+  var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo * teamRamp : 0;
   var platformMo  = (labourOn() && !ownsPlat) ? v("platformFte") * fteMo * teamRamp : 0;
 
   /* Renting skips the hardware but not the bring-up: you still stand up the
