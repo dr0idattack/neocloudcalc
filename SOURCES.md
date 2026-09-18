@@ -138,16 +138,18 @@ Replaying the corrected simulator's own formulas:
 | Test | Result | Verdict |
 | --- | --- | --- |
 | Cost per developer per month, heavy usage, Anthropic rates | **$200** | Matches Anthropic's reported $150–250 |
-| Break-even team size, buying H100s, quality penalty off | **67 developers**, ~$160K/year of API spend | Lands in the published $50K–500K hybrid band |
+| Break-even team size, buying H100s, equal quality assumed | **67 developers**, ~$160K/year of API spend | Lands in the published $50K–500K hybrid band |
 | Output volume at break-even | ~20M output tokens/day | Same order as the published 5–10M, on the conservative side |
 | Renting instead of buying | Beats the API at 63 developers | Rent crosses slightly earlier than buying, as expected |
 | Same test after itemising the real build | **125 developers** | See below |
-| With the 15% penalty on | Self-hosting never wins, even at 1,000 developers | See below |
+| Same test again, after topology-aware sizing, the baseline platform team and the acceptance-driven token multiplier | **150 developers** | Each correction moved it further from self-hosting |
+| With the default acceptance gap | Self-hosting never wins, even at 1,000 developers | See below |
 
 The break-even figures above were measured before the bill of materials existed.
 Itemising what a real build actually costs — spare cards, fabric and optics,
 rack and smart hands, hardware support, and 400 hours of setup labour — pushed
-break-even from **67 developers to 125**, nearly double. None of those lines are
+break-even from **67 developers to 125**, nearly double, and later corrections
+took it to **150**. None of those lines are
 exotic; they are simply the ones a napkin comparison of "GPU price versus token
 price" leaves out. That gap is the single best argument for itemising.
 
@@ -175,6 +177,11 @@ harnesses land **35–50%** first-pass, with the best model-and-harness combinat
 resolving 38.8% pass@1. That is the number that matters, and it is roughly half
 the benchmark figure.
 
+**A better anchor.** SWE-bench Pro pass@1 spans roughly **27.4% to 59.9%** across
+current models and is nowhere near saturated, which makes it a far better guide
+than Verified. The tool's three named profiles are pinned to that spread:
+Optimistic 58/48, Observed 45/34, Conservative 36/25 (frontier/open first pass).
+
 **Defaults chosen:** frontier 45%, open 34%. The frontier figure sits inside the
 published 35–50% band. The open figure applies a ratio slightly harsher than the
 benchmark gap, because the gap widens on the harder, less saturated benchmarks.
@@ -185,7 +192,16 @@ is what `minutes_per_attempt` stands in for. Notably, "effective cost per
 accepted task" is itself now a named 2026 benchmark outcome, alongside first-pass
 success, retries and review burden. The framing is not this tool's invention.
 
-**Treat these four fields as the ones to measure yourself.** Every other default
+**Retries are not fresh coin flips.** An earlier version used
+`attempts = 1 / firstPassAcceptance`, which assumes every retry is an independent
+Bernoulli trial at the same probability. Coding agents do not behave that way:
+benchmark pass@1 is measured across independent rollouts, not as the chance a
+*failed* task succeeds next time, and some tasks are simply beyond a given model —
+one reported case went 0-for-64 across every configuration tried. The model now
+separates a first pass, a weaker repair pass, and a share never solved at all,
+and spends attempts on the hopeless share too.
+
+**Treat these fields as the ones to measure yourself.** Every other default
 here can be checked against a vendor price list. These cannot. They vary by
 workload, by repository, by harness, and by what your team will tolerate — an
 open model might be no worse on a well-scoped change and unusable on an
@@ -200,9 +216,8 @@ Those same 60 developers cost roughly **$10,000 each per month** in loaded
 coding time.
 
 So a **2% productivity penalty costs exactly as much as the entire frontier API
-bill.** At the tool's default 15% penalty, the drag term is about $1,500 per
-developer per month — more than seven times the API spend — and no fleet
-arithmetic can recover it.
+bill.** At the tool's default acceptance gap the drag term is several times the
+API spend, and no fleet arithmetic recovers it.
 
 This is why the tool now shows a **Quality budget** figure: the percentage of
 developer time that the self-hosted saving actually buys. When that number is
@@ -211,9 +226,16 @@ deciding the question, and no amount of GPU shopping changes that.
 
 The honest conclusion is not "never self-host". It is that self-hosting a coding
 model is a bet on the open-weight model being *nearly as good*, not on it being
-cheaper. Set the penalty to 0 where that bet is safe — a well-scoped internal
-task, a batch job, a non-frontier workload — and the cost case comes back
-immediately.
+cheaper. Raise open-model acceptance to match the frontier where that bet is safe
+— a well-scoped internal task, a batch job, a non-frontier workload — and the cost
+case comes back immediately.
+
+And there is a third answer the earlier versions could not express. Routing the
+open model first and escalating what it cannot finish gets **two independent
+shots**, so it finishes more work than either tier alone. Cost the tasks that
+still need a person and that hybrid stops being sixth and becomes first, by a
+wide margin. The question worth asking is not open versus frontier. It is which
+routing policy minimises cost per accepted task.
 
 ---
 
@@ -256,6 +278,9 @@ immediately.
 - [Best open-source coding model 2026 — Morph](https://www.morphllm.com/best-open-source-coding-model-2026)
 - [SWE-bench Pro leaderboard — Scale](https://labs.scale.com/leaderboard/swe_bench_pro_public)
 - [Coding agent benchmarks 2026 — Presenc AI](https://presenc.ai/research/coding-agent-benchmarks-2026)
+- [SWE-bench Pro leaderboard, September 2026 — Morph](https://www.morphllm.com/swe-bench-pro)
+- [SWE-bench leaderboard 2026, what the scores mean — CodeAnt](https://codeant.ai/blogs/swe-bench-scores)
+- [Your coding agent's leaderboard score isn't a production guarantee — HackerNoon](https://hackernoon.com/your-coding-agents-leaderboard-score-isnt-a-production-guarantee)
 - [The best coding agent still gets ~6 in 10 changes wrong — DEV](https://dev.to/tessainsley/the-best-coding-agent-still-gets-6-in-10-changes-wrong-that-is-your-review-load-3h5n)
 - [On the use of agentic coding: an empirical study of pull requests on GitHub — arXiv](https://arxiv.org/pdf/2509.14745)
 - [Agentic code review — O'Reilly Radar](https://www.oreilly.com/radar/agentic-code-review/)

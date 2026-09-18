@@ -25,9 +25,15 @@ This puts all of it on one scale.
 | GPUs you rent by the hour | Your own hardware | Hourly card rent |
 | AWS Bedrock | Cloud platform | Tokens + cloud plumbing staff |
 | Azure OpenAI | Cloud platform | Tokens + cloud plumbing staff |
-| Anthropic API | Direct from the lab | Tokens |
-| OpenAI API | Direct from the lab | Tokens |
-| Flat per-seat plans | Direct from the lab | Seats |
+| Anthropic API | Direct from the lab | Tokens + baseline platform team |
+| OpenAI API | Direct from the lab | Tokens + baseline platform team |
+| Flat per-seat plans | Direct from the lab | Seats + baseline platform team |
+| Open model, frontier fallback | Hybrid | A small fleet + escalation tokens |
+
+Every centralised route carries a baseline platform team — a gateway, secrets,
+IAM, observability, evals and a security review do not appear only because the
+endpoint is Bedrock. Bedrock, Azure and the self-hosted routes pay that **plus**
+their own incremental staff. A switch zeroes it if you already run one.
 
 Every route is scored on the same five components — hardware written down, power
 and rack and storage, people, tokens and seats and GPU rent, and developer time
@@ -74,6 +80,10 @@ answer: how many developers, how hard they use it, and how often the open-weight
 model gets it right first time. The third shows you live what it costs as a
 percentage of coding time.
 
+Effectiveness comes as named profiles — Optimistic, Observed, Conservative,
+Custom — anchored on SWE-bench Pro pass@1, which spans roughly 27–60% and is far
+from saturated. Touch any of the six fields and the profile drops to Custom.
+
 **Advanced** opens all six panels — workload, model and precision, money and
 time, accelerators, facility and laptops, and every published rate — plus team
 presets for Solo, Startup, Midsize and Enterprise.
@@ -83,8 +93,8 @@ Works on a phone, a tablet and a desktop.
 ## Using it
 
 1. Start in **Simple**. Set the team size and pick a usage tier.
-2. Drag the **open-model time penalty** to 0 and watch the ranking flip. That
-   one field decides the whole argument.
+2. Drag **open-model first-pass acceptance** up to match the frontier and watch
+   the ranking flip. That slider decides the whole argument.
 3. Switch to **Advanced** to pick your model, precision and card, replace the
    list prices in **Model rates** with your contract rates, and put your own
    numbers in **Effectiveness** — those four fields are the only ones you cannot
@@ -96,16 +106,26 @@ At 60 developers a frontier API bill is about $200 per developer per month.
 Those developers cost roughly $10,000 each per month in loaded coding time. So a
 **2% productivity penalty costs as much as the entire API bill.**
 
-The tool no longer asks you to guess that penalty. It derives it from first-pass
-acceptance: a weaker model needs more attempts per accepted task, which costs
-developer minutes **and** burns more tokens for the same shipped work, so the
-self-hosted fleet has to be bigger too. Published real-world first-pass rates on
-production codebases run 35–50% for the best frontier harnesses — well below
-benchmark scores — and open-weight models sit under that.
+The tool no longer asks you to guess that penalty. It models the failure path:
+**attempt → repair → retry → escalate → accept, or a person writes it.** Each
+tier has a first-pass rate, a repair rate for the second and later tries, and a
+share it never solves however many times you ask. Attempts are spent on the
+hopeless share too, which is exactly why retry budgets cost money.
 
-Every route reports **cost per accepted task**, which is comparable across routes
-in a way cost per developer per month is not, because accepted output is held
-constant.
+That produces the interesting result. **Open model with frontier fallback finishes
+more work than either alone**, because it gets two independent shots — about 11%
+of tasks still need a person against 26% on the frontier alone. Turn on *"cost the
+tasks the agent cannot finish"* and the hybrid stops being sixth cheapest and
+becomes first, by a factor of three. That switch is off by default, because
+45 minutes of hand-written code is a softer number than a token price and should
+not quietly swamp the rest of the model.
+
+Every route reports **AI cost per accepted task** — named that way deliberately.
+It is the AI spend plus the *differential* developer time, not the fully loaded
+cost of shipping the change; ordinary review and engineering labour exists on
+every route and is not this tool's to count. Accepted output is held constant
+across routes, so the figure is comparable in a way cost per developer per month
+is not.
 
 The **Quality budget** figure shows the share of developer time the self-hosted
 saving actually buys. When it is smaller than what your acceptance gap costs, no
