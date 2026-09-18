@@ -212,6 +212,74 @@ life       = total × horizon_months
 Routes are sorted ascending by `total`. Rank one gets the "Cheapest" chip; the
 last gets "Priciest".
 
+### Accounting view vs cash view
+
+Every route carries both, because they answer different questions:
+
+```
+accounting:  total       = capex/amort + power + people + usage + drag
+cash:        upfront     = the cheque on day one
+             monthlyCash = power + people + usage + drag
+             cashAt(m)   = upfront + monthlyCash × m
+```
+
+The monthly chart and the route cards use the accounting view — capital spread
+over the write-off period, which is how a cost centre sees it. The cumulative
+cash chart uses the cash view, because a $208k cheque in month 0 is not the same
+thing as $5.8k a month and no CFO thinks it is.
+
+Break-even between two straight cumulative lines is solved directly rather than
+scanned:
+
+```
+crossMonth = (hosted.upfront − own.upfront) / (own.monthlyCash − hosted.monthlyCash)
+```
+
+A negative or absent root means owning never catches renting tokens, because it
+costs more to run as well as more to buy.
+
+### Bill of materials
+
+The buy route's capital is itemised rather than rolled into one number, because
+this is the list that goes to procurement:
+
+| Line | Derivation |
+| --- | --- |
+| Accelerators | `cards × gpuBuy` |
+| Spare cards | `cards × spares%` |
+| GPU host chassis | `hosts × hostCost` |
+| Fabric, optics, cabling | `hosts × netFabric` |
+| Rack, PDU, smart hands | `hosts × installHost` |
+| One-time labour | `(setupArch + hosts×setupRack + setupStack + setupEval + setupSec) × fteCost/2080` |
+
+Recurring adds hardware support (`hwCapex × warranty%/12`), rack and cooling,
+electricity, checkpoint storage, the platform FTE, and the one-time labour
+written down over the amortisation period.
+
+**The labour switch** (`#labour`, on by default) is not cosmetic — it feeds the
+model. Off, it zeroes the platform FTE, the cloud-ops FTE, laptop IT support and
+all setup labour on every route. That models a team that already exists and
+absorbs the work, which is the assumption most self-hosting business cases make
+silently. The tool makes you make it out loud.
+
+Renting GPUs skips the hardware but not the bring-up: it still carries the
+serving stack, model evaluation, security review and half the architecture time.
+
+### Sensitivity
+
+The metric is the **decision margin**: cheapest hosted route minus the cheaper of
+buying or renting GPUs, per month. Laptops are excluded — one model per developer
+is a different animal from standing up shared serving, and this section is about
+whether to stand one up.
+
+Each knob is swung ±30% and the margin recomputed through `withOv`. A bar whose
+range crosses zero changes the *winner*, not just the size of the bill; those are
+drawn in the warning hue and labelled "flips".
+
+Knobs that read "no effect" are reporting something real rather than failing: the
+fleet is at its minimum size, so that assumption cannot move it. Self-hosted cost
+is a step function.
+
 ### The quality budget
 
 The headline figure, and the reason the tool exists:
@@ -282,7 +350,24 @@ busy agentic session wants more than that.
 
 ---
 
-## 6. Modes
+## 6. Replaying the model at other inputs
+
+`v(id)` normally reads the DOM. A module-level `OV` map overrides it, and
+`withOv(overrides, fn)` sets it for one call and restores it after:
+
+```js
+var o = withOv({devs: 250, drag: 0}, compute);
+```
+
+This is what the break-even scan and the sensitivity pass are built on, and it
+is why neither needs a second copy of the cost model. Roughly 200 extra
+`compute()` calls run per render; each is a few dozen arithmetic operations, so
+the whole render stays well inside a frame.
+
+`compute()` must never call anything that calls `render()`, or the override
+stack unwinds into recursion.
+
+## 7. Modes
 
 **Simple** shows three levers and nothing else: developers, a usage tier, and
 the open-model time penalty. They are the three inputs that move the answer
@@ -302,7 +387,7 @@ Usage tiers, anchored on Anthropic's reported ~$13 per developer per active day:
 
 **Advanced** reveals all six panels plus the team-size presets.
 
-## 7. Responsive behaviour
+## 8. Responsive behaviour
 
 Three layouts, with breakpoints deliberately set *off* the common device widths
 (1099px and 679px rather than 1024 and 640). Chrome evaluates media queries
@@ -314,14 +399,14 @@ is why the numbers look odd.
 | --- | --- |
 | 1100px+ | Two panes. Sticky input rail on the left, results scroll on the right |
 | 680–1099px | One column. Rail panels reflow into an auto-fit grid, simple-mode levers sit side by side |
-| Up to 679px | Fully stacked. The capacity table becomes one block per route via `data-label` pseudo-elements, the chart drops its axis and the bars go full width, controls grow to touch size |
+| Up to 679px | Fully stacked. The capacity and beyond-cost tables become one block per route via `data-label` pseudo-elements, the chart drops its axis and the bars go full width, controls grow to touch size |
 | Up to 399px | Usage tiers and sizing cells drop to a single column |
 
 Verified with a scripted pass measuring `scrollWidth` and every element's right
 edge at 500 / 640 / 700 / 768 / 834 / 900 / 1024 / 1100 / 1280 / 1440. No
 horizontal page scroll at any width.
 
-## 8. Design system
+## 9. Design system
 
 ### Colour
 
@@ -354,6 +439,15 @@ IBM Plex Sans for interface text, IBM Plex Mono for every figure, with
 `font-variant-numeric: tabular-nums` so columns of money line up. Loaded from
 Google Fonts with a real fallback stack.
 
+### Charts
+
+The monthly chart is HTML flex bars. The cumulative cash chart is inline SVG
+drawn at **measured pixel width** (`container.clientWidth`) rather than a scaled
+`viewBox`, so its labels stay at their true size instead of shrinking with the
+page; a debounced `resize` listener re-renders it. SVG marks take their colour
+through `style="stroke:var(--s1)"`, because `var()` is not permitted in SVG
+presentation attributes.
+
 ### Layout idiom
 
 Repeated groups are laid out as a grid with `gap: 1px` over a line-coloured
@@ -364,11 +458,14 @@ reads as empty rather than as a grey block.
 
 ---
 
-## 9. Deliberate omissions
+## 10. Deliberate omissions
 
 Not modelled, and worth saying out loud:
 
-- Procurement lead time and the cost of waiting for cards
+- Procurement lead time and the cost of waiting for cards (named in the
+  beyond-cost table, never priced)
+- Power upgrades to the room, and the second cluster you buy when the first fills
+- Spot, committed-use and reserved-capacity discounts
 - Security review, compliance, and data-residency work
 - Fine-tuning, evaluation harnesses, and model upgrade cycles
 - Prefill cost and the compute-bound regime at very large batch

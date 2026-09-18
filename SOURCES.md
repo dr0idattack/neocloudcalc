@@ -141,7 +141,15 @@ Replaying the corrected simulator's own formulas:
 | Break-even team size, buying H100s, quality penalty off | **67 developers**, ~$160K/year of API spend | Lands in the published $50K–500K hybrid band |
 | Output volume at break-even | ~20M output tokens/day | Same order as the published 5–10M, on the conservative side |
 | Renting instead of buying | Beats the API at 63 developers | Rent crosses slightly earlier than buying, as expected |
+| Same test after itemising the real build | **125 developers** | See below |
 | With the 15% penalty on | Self-hosting never wins, even at 1,000 developers | See below |
+
+The break-even figures above were measured before the bill of materials existed.
+Itemising what a real build actually costs — spare cards, fabric and optics,
+rack and smart hands, hardware support, and 400 hours of setup labour — pushed
+break-even from **67 developers to 125**, nearly double. None of those lines are
+exotic; they are simply the ones a napkin comparison of "GPU price versus token
+price" leaves out. That gap is the single best argument for itemising.
 
 The tool agrees with the literature wherever the literature is specific, and it
 is conservative — it asks for a slightly bigger team before self-hosting wins

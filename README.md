@@ -35,6 +35,24 @@ lost — so the bars stack on one scale.
 
 ## What it works out for you
 
+**Cash, month by month.** Capital lands on day one; the cumulative chart shows
+the cheque, not the accounting entry, and marks the month each self-hosted route
+catches renting tokens — or says plainly that it never does. Plus the team size
+above which owning wins, both at your quality assumption and at equal quality.
+
+**A bill of materials.** If you are set on owning the iron, the itemised list
+that goes to procurement: cards, spares, chassis, fabric, rack and smart hands,
+then the setup hours, then the monthly run rate. One switch counts or excludes
+setup and running labour — off, it models a team that already exists and absorbs
+the work, which is the assumption most self-hosting business cases make silently.
+
+**What moves the answer.** Every assumption swung 30% either way against the gap
+between hosting it yourself and renting tokens. Bars that cross zero change the
+winner, not just the bill.
+
+**Beyond cost.** Where your code goes, time to stand up, what it costs to change
+your mind, and whether it needs a hire.
+
 **Sizing.** Pick an open-weight model from the catalogue (Qwen3-Coder, DeepSeek,
 Kimi K2, GLM, Llama, gpt-oss, Devstral), a weight precision and an accelerator.
 It computes weights in memory, KV cache, cards per replica, replica throughput,
@@ -93,11 +111,17 @@ Anthropic's reported $150–250, and the self-hosting break-even lands at ~67
 developers and ~$160K/year of API spend, inside the published $50K–500K hybrid
 band.
 
+## Deploying it
+
+`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push.
+It needs one switch flipped first: **Settings → Pages → Source → GitHub Actions**.
+
 ## Files
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | The entire application — markup, styles, sizing, capacity and cost model |
+| `index.html` | The entire application — markup, styles, sizing, capacity, cash and cost model |
 | `ARCHITECTURE.md` | Specification: catalogues, formulas, design tokens, omissions |
 | `SOURCES.md` | Every default's provenance, the corrections, and validation against published figures |
+| `.github/workflows/pages.yml` | Publishes the site to GitHub Pages |
 | `AGENTS.md` | Directions for AI agents working in this repo |
