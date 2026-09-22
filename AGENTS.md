@@ -30,8 +30,27 @@ pulls. Do not add more.
 6. **Changing a default means updating `SOURCES.md`.** Every number in the
    catalogues and rate panels has a recorded provenance. A default with no
    source is a guess wearing a suit.
-7. **Simple mode stays at three levers.** A fourth is always tempting and always
-   wrong — that is what Advanced is for.
+7. **Overview stays at three levers.** A fourth is always tempting and always
+   wrong — that is what the other three modes are for.
+8. **A mode never gets its own arithmetic.** Modes choose which sections and
+   tiles render, never how a number is computed. A figure that exists in one
+   mode and not another is a framing decision; a figure that differs between
+   modes is a bug.
+9. **Build withholds the verdict deliberately.** Someone reading a bill of
+   materials is checking the arithmetic. Do not add a recommendation there.
+10. **The spreadsheet has no macros, and never will.** `tools/build_xlsx.py`
+    emits a plain `.xlsx` using only functions that predate Excel 2016. A macro
+    would cost the workbook macOS, locked-down Windows, LibreOffice and Google
+    Sheets in exchange for nothing this model needs. No `XLOOKUP`, `SORT`,
+    `FILTER`, `LET` or any other spilling array function either.
+11. **Never hand-edit the workbook.** It is generated. Change the generator,
+    rebuild, and re-check the result against the page before pushing — the two
+    must agree route by route at the default run.
+12. **Staffing ramps; setup labour does not.** Ongoing staffing starts at
+    `soloAt` and reaches full strength at `platformAt`, because nobody is
+    employed to run this for three developers. One-off bring-up costs the same
+    hours whoever it is for, and charging it is what keeps self-hosting honest
+    at small scale.
 
 ## How to add things
 

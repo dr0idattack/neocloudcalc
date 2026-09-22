@@ -313,25 +313,57 @@ A fixed baseline bites hardest at small scale, and many organisations already ru
 a gateway serving many workloads. The **entitlement switch** zeroes it; to model
 an allocated share instead, lower the FTE rather than switching it off.
 
-### The nine routes
+### Staffing ramp
+
+A solo developer or small team does not staff an enterprise platform team or a
+24/7 rota. Charging full FTEs at every head count made small-team answers absurd:
+half an FTE is ~$10,800/month against ~$200 of tokens for one developer. Ongoing
+staffing — the baseline team, the fleet admin rota and the cloud-ops share —
+therefore scales with the team:
+
+```
+teamRamp = platformAt > soloAt
+  ? min(1, max(0, (devs - soloAt) / (platformAt - soloAt)))
+  : (devs > soloAt ? 1 : 0)
+
+platformMo = (labourOn && !ownsPlat) ? platformFte × fteMo × teamRamp : 0
+adminMo    = labourOn ? adminFte × fteMo × teamRamp : 0
+cloudOpsMo = labourOn ? cloudOps × fteMo × teamRamp : 0
+```
+
+It is zero at or below `soloAt` (default 3) and full at `platformAt` (default
+20). A straight `devs / platformAt` ramp was tried first and is wrong: it keeps
+the *per developer* staffing charge flat all the way down, so one developer still
+carried a twentieth of an FTE — $542 a month against a $20 subscription.
+
+One-off setup labour does **not** ramp. Standing up a serving stack, evaluating a
+model and passing a security review cost the same hours whether they serve one
+developer or a hundred, and charging them in full is what keeps self-hosting
+honest at small scale.
+
+### The ten routes
 
 | Route | capex | power | people | usage |
 | --- | --- | --- | --- | --- |
 | Local model on laptops | laptop uplift ÷ write-off | laptop watts × hours | IT support hours | — |
-| GPUs you buy | (cards × price + hosts × host cost) ÷ write-off | fleet kW × PUE × 730 × $/kWh + rack + storage | platform FTE | — |
-| GPUs you rent | — | storage only | platform FTE | cards × $/hr × 730 × uptime% |
-| AWS Bedrock | — | — | cloud ops FTE | tokens |
-| Azure OpenAI | — | — | cloud ops FTE | tokens |
-| Anthropic API | — | — | — | tokens |
-| OpenAI API | — | — | — | tokens |
+| GPUs you buy | (cards × price + hosts × host cost) ÷ write-off | fleet kW × PUE × 730 × $/kWh + rack + storage | baseline platform + admin FTE + setup labour ÷ amort | — |
+| GPUs you rent | — | storage only | baseline platform + admin FTE + setup labour ÷ amort | cards × $/hr × 730 × uptime% |
+| Open model, hosted by someone else | — | — | baseline platform | open tokens × (1 + fee%) |
+| AWS Bedrock | — | — | baseline platform + cloud ops FTE | tokens |
+| Azure OpenAI | — | — | baseline platform + cloud ops FTE | tokens |
+| Anthropic API | — | — | baseline platform | tokens |
+| OpenAI API | — | — | baseline platform | tokens |
+| Open model, frontier fallback | hybrid capex | hybrid power | baseline platform + admin FTE + setup labour ÷ amort | open GPU rent + escalation tokens |
 | Flat per-seat plans | — | — | baseline platform | devs × (seat + platform seat) |
 
-Seat plans are picked from a small catalogue. `base` is a platform seat the plan
-rides on — GitHub Copilot Enterprise at $39 requires a GitHub Enterprise Cloud
+Seat plans are picked from a catalogue of individual subscriptions (Copilot Pro, Claude Pro,
+Cursor Pro, ChatGPT Plus, Claude Max, ChatGPT Pro) and enterprise tiers (Cursor Standard/Premium,
+Copilot Enterprise). Each plan carries a per-seat throughput ceiling (`tpm`). `base` is a platform
+seat the plan rides on — GitHub Copilot Enterprise at $39 requires a GitHub Enterprise Cloud
 seat at $21 — and the **entitlement switch** drops it, because many buyers
-already hold that seat and their incremental decision is $39, not $60.
+already hold that seat.
 
-Metered token rates take a `apiDiscount` haircut for negotiated or committed
+Metered token rates take an `apiDiscount` haircut for negotiated or committed
 pricing. Seats never do.
 
 Fleet power carries a ×1.25 uplift over raw board power for host, NIC and fans.
@@ -457,7 +489,9 @@ deliver.
 | --- | --- |
 | Local model on laptops | `devs × laptopTPS`, where `laptopTPS = laptop_bandwidth / bytesPerToken × efficiency` |
 | GPUs you buy / rent | `replicas × replicaTPS` |
+| Open model, hosted by someone else | `orTpm × 1000 / 60` |
 | Bedrock / Azure / Anthropic / OpenAI | account quota, `k tok/min × 1000 / 60` |
+| Open model, frontier fallback | `replicas × replicaTPS` (routine traffic; API catches hard cases) |
 | Flat per-seat plans | `devs × per-seat ceiling / 60` |
 
 ### Two kinds of scaling
@@ -493,8 +527,9 @@ headroom = unitTPS / sessionTPS
 ```
 
 Headroom below 1.0× means the route throttles and developers queue. This is where
-per-seat plans get interesting: a seat ceiling of 900 tok/min is 15 tok/s, and a
-busy agentic session wants more than that.
+per-seat plans get interesting: an individual seat ceiling of 350 tok/min is ~6 tok/s,
+and Cursor Pro / Premium at 2,200 tok/min is ~37 tok/s — a busy agentic session wants
+sustained throughput.
 
 ---
 
@@ -517,8 +552,46 @@ stack unwinds into recursion.
 
 ## 7. Modes
 
-**Simple** shows three levers and nothing else: developers, a usage tier, and
-the open-model time penalty. They are the three inputs that move the answer
+Four readers, one model. `MODES` maps each to the sections it shows, whether the
+rail is the three-lever panel or all seven, and which KPI tiles render. `setMode`
+toggles `hidden` on every section id in `ALLSECS` and re-renders; `beforeprint`
+un-hides them all so paper carries the whole document whatever the screen shows.
+
+| Mode | Rail | Sections | KPIs |
+| --- | --- | --- | --- |
+| `overview` | three levers | verdict, models, beyond cost | cheapest, full term, quality budget |
+| `advanced` | all panels | verdict, chart, models, capacity, sensitivity, cards | + priciest, spread |
+| `money` | all panels | verdict, cash curve, books | full term, year one, spread, priciest |
+| `build` | all panels | verdict, sizing, models, capacity, bill of materials | cheapest, year one |
+
+The **verdict lead** sits at the top across all four modes so the primary takeaway is never
+hidden. It adapts dynamically to team scale:
+- At or below `soloAt` (default 3 developers), it names the cheapest individual seat
+  subscription that provides sufficient sustained throughput, quotes the serverless
+  open-weights monthly figure for bursty metered traffic, and explicitly notes that private
+  clusters are wasteful at this scale.
+- For larger teams, it names the overall winning route, quotes the break-even team size
+  against dedicated hardware (computed via `breakEvenDevs(true)`), and notes what would win
+  if unfinished tasks are costed (via `withOv({costFallback: !current})`).
+
+### Model simulation
+
+The "Which model, at your workload" section (`sec-models`) prices the exact same month of
+work across candidate models without writing a secondary calculator:
+
+- **Pay per token (Frontier & Serverless)**: Calculates the monthly bill across frontier rate
+  cards (`FRONTIER`: Claude Sonnet 5, Claude Opus 5, Claude Haiku 4.5, GPT-5.6 Sol) and
+  serverless open weights (`orIn`, `orOut`, `orCache`, `orFee`). The serverless open row
+  multiplies token volume by `openTokenMultiplier` to account for retry attempts. Clicking
+  "Use" copies that model's rates directly into the rail's editable inputs.
+- **Host it yourself (Open weights)**: Runs a full replay of the cost model for each model
+  in `MODELS` using `withOv({model: m.id}, compute)`. It derives exact memory per replica
+  (`vramNeed`), card counts (`gpus`), monthly ownership cost (`buy.total`), and whether the
+  model fits unified memory on developer laptops (`fitsLaptop`). Clicking "Use" switches the
+  selected open model in the rail.
+
+**Overview** shows three levers and nothing else: developers, a usage tier, and
+open-model first-pass acceptance. They are the three inputs that move the answer
 most. The tier buttons write into the same `inTok` / `outTok` / `codeHrs`
 fields the advanced panels use, and the sliders write into `devs` and `drag`,
 so `compute()` never knows which mode is on. Switching to Simple re-syncs the
@@ -533,7 +606,9 @@ Usage tiers, anchored on Anthropic's reported ~$13 per developer per active day:
 | Heavy (default) | 10M | 300k | 5 |
 | All-day agent | 20M | 700k | 7 |
 
-**Advanced** reveals all six panels plus the team-size presets.
+**Advanced** reveals all panels plus the team-size presets. **Money** focuses on cumulative
+cash curves and 3-year P&L books. **Build** details node sizing, serving capacity, and the
+itemised bill of materials.
 
 ## 8. Export
 
@@ -662,6 +737,46 @@ Not modelled, and worth saying out loud:
 - The cost of shipping a year behind
 
 Several of these are large. The tool is a frame for an argument, not a quote.
+
+## 9. The offline edition
+
+`Coding-Model-TCO-Calculator.xlsx` is the same model as a spreadsheet, generated
+by `tools/build_xlsx.py`. It is never hand-edited.
+
+**Constraints, in order of importance.**
+
+1. *No macros.* A `.xlsm` buys nothing this model needs and costs it macOS,
+   locked-down Windows estates, LibreOffice and Google Sheets.
+2. *Excel 2016 vocabulary only.* `INDEX`/`MATCH`, not `XLOOKUP`; `RANK` plus a
+   `COUNTIF` tie-break, not `SORT`. No spilling array function appears anywhere,
+   because a generated file carries no spill metadata.
+3. *Formulas, never baked results.* Every figure recalculates from `Inputs`.
+4. *One input, one cell, one name.* Roughly ninety defined names carry the inputs
+   and the intermediates, so a formula on any sheet reads as prose.
+
+**Six tabs.** `Answer` (verdict, ranking, stacked bar), `Inputs` (everything
+editable; blue cells, and an Override column that beats the catalogue), `Models`
+(every rate card priced at your volume, and the fleet each set of open weights
+would need), `Scale` (the model replayed at twelve team sizes, with the
+break-even and a cost-per-developer curve), `Workings` (the funnel, the sizing
+chain, the route table), `Catalogues` (specs and list prices).
+
+**The break-even on `Scale` is not the web app's number.** The page scans team
+sizes re-running the model with open acceptance forced equal to the frontier's,
+which also shrinks the fleet. The workbook instead compares full-term cash for
+the cheapest fleet you own against the cheapest hosted route, with each route's
+developer-time charge stripped from both sides. Same question — is the
+infrastructure cheaper — answered without a second full replay. Laptops are
+excluded from it: one machine per developer is a different question from a fleet.
+
+**Verification.** LibreOffice cannot open `.xlsx` files in the build sandbox, so
+`recalc.py` is unavailable here; the workbook is instead evaluated with the
+`formulas` package and checked cell by cell against the live page at the default
+sixty-developer run. All ten routes must agree on monthly cost, up-front cash,
+cost per developer and AI cost per accepted task, and the sizing chain must agree
+on memory, cards, throughput, time to first token and storage. A change that
+breaks that agreement is a bug in whichever side moved.
+
 
 Every default's provenance, the corrections made after checking them against
 published figures, and the validation of the model against published break-even

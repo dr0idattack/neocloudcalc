@@ -1,7 +1,7 @@
 # neocloudcalc
 
 **What a coding model really costs.** A single-page calculator that compares the
-three-year total cost of ownership of an AI coding assistant across nine ways to
+three-year total cost of ownership of an AI coding assistant across ten ways to
 run one — and tells you how many developers each one can actually carry.
 
 Open `index.html` in a browser. That is the whole app. No build step, no install,
@@ -16,24 +16,33 @@ all. Not just a price per token.
 
 This puts all of it on one scale.
 
-## The nine routes
+## The ten routes
 
 | Route | Group | Cost is mostly |
 | --- | --- | --- |
 | Local model on laptops | Your own hardware | Laptop uplift + lost developer time |
 | GPUs you buy | Your own hardware | Card capex, power, rack, platform staff |
 | GPUs you rent by the hour | Your own hardware | Hourly card rent |
+| Open model, hosted by someone else | Serverless open weights | Tokens + aggregator fee + baseline platform team |
 | AWS Bedrock | Cloud platform | Tokens + cloud plumbing staff |
 | Azure OpenAI | Cloud platform | Tokens + cloud plumbing staff |
 | Anthropic API | Direct from the lab | Tokens + baseline platform team |
 | OpenAI API | Direct from the lab | Tokens + baseline platform team |
-| Flat per-seat plans | Direct from the lab | Seats + baseline platform team |
+| Flat per-seat plans | Direct from the lab | Seats, individual or enterprise |
 | Open model, frontier fallback | Hybrid | A small fleet + escalation tokens |
+
+Staffing scales with the team. Nobody is employed to run this below the
+small-team threshold, and the baseline reaches full strength at the head count
+you set — which is why one developer is quoted the price of a subscription and
+not a fraction of a platform engineer. One-off setup labour does not scale down:
+standing up a serving stack is the same work whoever it is for.
 
 Every centralised route carries a baseline platform team — a gateway, secrets,
 IAM, observability, evals and a security review do not appear only because the
 endpoint is Bedrock. Bedrock, Azure and the self-hosted routes pay that **plus**
 their own incremental staff. A switch zeroes it if you already run one.
+Staffing now ramps with team size (reaching full strength at 20 developers by default),
+so a solo dev or small team is not billed a full enterprise platform team against a small token bill.
 
 Every route is scored on the same five components — hardware written down, power
 and rack and storage, people, tokens and seats and GPU rent, and developer time
@@ -41,10 +50,20 @@ lost — so the bars stack on one scale.
 
 ## What it works out for you
 
+**The recommendation up front.** Every mode leads with a plain verdict. At small
+team sizes (3 or fewer by default) it names the cheapest flat plan that keeps up
+with a live session and prices serverless metered tokens beside it. Above that, it
+quotes the winning route and the conditions that would overturn it.
+
 **Cash, month by month.** Capital lands on day one; the cumulative chart shows
 the cheque, not the accounting entry, and marks the month each self-hosted route
 catches renting tokens — or says plainly that it never does. Plus the team size
 above which owning wins, both at your quality assumption and at equal quality.
+
+**Model simulation.** Price the same month of work across frontier rate cards
+(Claude Sonnet 5, Opus 5, Haiku 4.5, GPT-5.6 Sol) and serverless open weights,
+and replay the entire cost model on each set of open weights to see what each
+costs to own. An interactive **Use** button loads any selection into the rail.
 
 **A bill of materials.** If you are set on owning the iron, the itemised list
 that goes to procurement: cards, spares, chassis, fabric, rack and smart hands,
@@ -67,35 +86,40 @@ a laptop at all.
 
 **Capacity.** How many concurrent agentic coding sessions each route can sustain,
 how many developers that is, and the headroom against your actual demand. Below
-1.0× the route throttles and your developers queue. This is where per-seat plans
-get interesting.
+1.0× the route throttles and your developers queue. Individual hobby plans and
+enterprise seats carry their own speed limits.
 
 **Cost.** Monthly and over the full horizon, per developer and per million output
 tokens, broken down by where the money goes.
 
-## Two modes
+## Four readers, four modes
 
-**Simple** gives you three levers, because three is what actually moves the
-answer: how many developers, how hard they use it, and how often the open-weight
-model gets it right first time. The third shows you live what it costs as a
-percentage of coding time.
+- **Overview (for leadership / CIO)**: Leads with the recommendation, what would overturn it, three simple levers, the model comparison tables, and non-cost factors.
+- **Advanced (for engineering management / VP)**: Operational view showing all ten routes, capacity headroom, the sensitivity pass, the cost chart, and route cards.
+- **Money (for finance / CFO)**: Cash timing by year, the capital vs operating split, buying vs renting iron, and what stopping costs (including stranded hardware).
+- **Build (for infra / CTO)**: Sizing, capacity, and the full itemised bill of materials without preconceived verdicts.
+
+Overview stays at three levers, because three is what actually moves the answer:
+how many developers, how hard they use it, and how often the open-weight model
+gets it right first time. The third shows you live what it costs as a percentage
+of coding time.
 
 Effectiveness comes as named profiles — Optimistic, Observed, Conservative,
 Custom — anchored on SWE-bench Pro pass@1, which spans roughly 27–60% and is far
 from saturated. Touch any of the six fields and the profile drops to Custom.
 
-**Advanced** opens all six panels — workload, model and precision, money and
-time, accelerators, facility and laptops, and every published rate — plus team
-presets for Solo, Startup, Midsize and Enterprise.
+The recommendation leads every mode except Build, and it reads the scale it is
+given — at or below the small-team threshold it names the cheapest plan that
+keeps up with a live session instead of talking about platforms.
 
 Works on a phone, a tablet and a desktop.
 
 ## Using it
 
-1. Start in **Simple**. Set the team size and pick a usage tier.
+1. Start in **Overview**. Set the team size and pick a usage tier.
 2. Drag **open-model first-pass acceptance** up to match the frontier and watch
    the ranking flip. That slider decides the whole argument.
-3. Switch to **Advanced** to pick your model, precision and card, replace the
+3. Switch to **Advanced**, **Money** or **Build** to pick your model, precision and card, replace the
    list prices in **Model rates** with your contract rates, and put your own
    numbers in **Effectiveness** — those four fields are the only ones you cannot
    check against a vendor price list, and they are the ones that decide it.
@@ -131,6 +155,32 @@ The **Quality budget** figure shows the share of developer time the self-hosted
 saving actually buys. When it is smaller than what your acceptance gap costs, no
 amount of GPU shopping changes the answer. Self-hosting a coding model is a bet
 on the open model being nearly as good — not on it being cheaper.
+
+## The offline edition
+
+`Coding-Model-TCO-Calculator.xlsx` is the same model as a spreadsheet, for when
+the answer has to travel to someone who will not open a web page.
+
+**No macros.** Every figure is an ordinary formula, and every function predates
+Excel 2016, so it opens and recalculates on Windows, on macOS, in LibreOffice and
+in Google Sheets with nothing to enable and no security banner.
+
+| Tab | What is on it |
+| --- | --- |
+| `Answer` | The recommendation, the ranking, and a stacked bar of where the money goes |
+| `Inputs` | Every assumption. Blue cells are yours; the Override column beats the catalogue |
+| `Models` | The same month of work priced on every rate card, and the fleet each set of open weights would need |
+| `Scale` | The whole model replayed at twelve team sizes, with the break-even and a cost-per-developer curve |
+| `Workings` | Every intermediate the answer stands on — the funnel, the sizing, the route table |
+| `Catalogues` | Model specs, card specs, plan prices and rate cards, all editable |
+
+Rebuild it with `python3 tools/build_xlsx.py`. The generator is the source of
+truth for the workbook; do not hand-edit the file and expect the edit to survive.
+
+The workbook and the web app were checked against each other at the default
+sixty-developer run: all ten routes agree on monthly cost, up-front cash, cost
+per developer and AI cost per accepted task, and the sizing chain agrees on
+memory, cards, throughput, time to first token and storage.
 
 ## Health warning
 
@@ -173,4 +223,6 @@ Pages itself on the first run.
 | `SOURCES.md` | Every default's provenance, the corrections, and validation against published figures |
 | `.github/workflows/ci.yml` | Validates pull requests, publishes `main` to GitHub Pages |
 | `scripts/check.mjs` | The validation run in CI; run it locally with `node scripts/check.mjs` |
+| `Coding-Model-TCO-Calculator.xlsx` | The offline edition — formulas only, no macros |
+| `tools/build_xlsx.py` | Generates the workbook; the only supported way to change it |
 | `AGENTS.md` | Directions for AI agents working in this repo |
