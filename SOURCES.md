@@ -117,16 +117,26 @@ that is where someone actually shopping for inference capacity would buy.
 | Rack and cooling | $200/kW/month | GPU-density colocation runs $150–250/kW/month. Wholesale averages $196/kW/month across primary North American markets; $80–130 at 1MW+ |
 | Loaded platform engineer | $180,000 → **$260,000** | **CORRECTED.** ML infrastructure base is $130–200K, but fully loaded year-one cost is $210–370K. A $160K base costs $215–240K loaded |
 | Loaded developer | $95/hour | Unchanged — consistent with a fully loaded engineer over 2,080 hours |
-| Staffing ramp ceiling (`platformAt`) | 20 developers | A solo dev or small team does not employ 0.5+ dedicated platform FTEs; ongoing staffing scales `min(1, devs/20)` |
+| Staffing ramp ceiling (`platformAt`) | 20 developers | Judgement, not a published figure: roughly where a team starts to need someone whose job includes the gateway and the rota |
+| Small-team threshold (`soloAt`) | 3 developers | Judgement: at or below this nobody is employed to run the tooling, and the verdict talks about subscriptions instead of platforms |
 
 **The small-team staffing ramp.** Previously, the model billed full platform overhead
 even for a single developer (~$10,800/mo in platform, admin rota and cloud-ops FTEs
-against ~$200 of tokens), making self-hosting absurdly expensive at small scale.
-Ongoing staffing now ramps linearly with team size:
-`teamRamp = platformAt > 0 ? Math.min(1, devs / platformAt) : 1` (defaulting to full
-headcount at 20 devs). Fixed one-off setup labour (architecture, bring-up, security review)
-does not ramp because standing up a serving cluster requires the same hours regardless
-of team size.
+against ~$200 of tokens), making every centralised route absurd at small scale.
+
+The first fix ramped staffing linearly, `min(1, devs / platformAt)`. That was wrong in
+effect: it holds the *per developer* staffing charge flat all the way down, so one
+developer still carried a twentieth of an FTE — $542 a month against a $20 subscription.
+The ramp now starts at the small-team threshold instead:
+
+`teamRamp = platformAt > soloAt ? min(1, max(0, (devs - soloAt) / (platformAt - soloAt))) : (devs > soloAt ? 1 : 0)`
+
+Zero at or below 3 developers, full at 20. One developer went from ~$11,000 a month to
+$120; the sixty-developer run is unchanged. Both thresholds are judgement calls, not
+published figures — they are editable for that reason.
+
+Fixed one-off setup labour (architecture, bring-up, security review) does not ramp,
+because standing up a serving cluster requires the same hours regardless of team size.
 
 ## 6. Throughput — the biggest correction
 

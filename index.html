@@ -1964,6 +1964,25 @@ function runLine(d){
     + (d.labour ? "labour counted" : "labour excluded");
 }
 
+/* Every dropdown and switch the numbers depend on. The CSV and the printed
+   appendix both read this one list, so an assumption cannot reach one export
+   and silently miss the other. */
+function choices(d){
+  var yn = function(b){ return b ? "yes" : "no"; };
+  return [
+    ["Model", plain(d.s.m.label)],
+    ["Weight precision", plain(d.s.q.label)],
+    ["Accelerator", plain(d.s.g.label)],
+    ["Effectiveness profile", plain(pick(PROFILES, "profile").label)],
+    ["Per-seat plan", plain(pick(SEATPLANS, "seatPlan").label)],
+    ["Labour counted", yn(d.labour)],
+    ["Unfinished tasks costed", yn(d.costFallback)],
+    ["Already run an AI platform", yn(flagOn("ownsPlatform"))],
+    ["Already pay for the platform seat", yn(flagOn("ownsBase"))],
+    ["Hybrid open tier", d.hybridBuy ? "bought" : "rented"]
+  ];
+}
+
 function renderPrint(d){
   document.getElementById("p-sub").textContent =
     "Generated " + today() + " · every figure below is an assumption, not a quote";
@@ -1980,7 +1999,7 @@ function renderPrint(d){
       + '<td>' + (r.headroom >= 10 ? "10x+" : r.headroom.toFixed(1) + "x") + '</td></tr>';
   }).join("");
 
-  var rows = [];
+  var rows = choices(d).slice();
   Object.keys(GROUPS).forEach(function(g){
     GROUPS[g].forEach(function(f){
       rows.push([plain(f[1]), document.getElementById(f[0]).value + (f[2] ? " " + plain(f[2]) : "")]);
@@ -2015,13 +2034,7 @@ function buildCsv(d){
       L.push([q(plain(f[1])), document.getElementById(f[0]).value, q(plain(f[2] || ""))].join(","));
     });
   });
-  L.push([q("Model"), q(plain(d.s.m.label)), ""].join(","));
-  L.push([q("Weight precision"), q(plain(d.s.q.label)), ""].join(","));
-  L.push([q("Accelerator"), q(plain(d.s.g.label)), ""].join(","));
-  L.push([q("Labour counted"), q(d.labour ? "yes" : "no"), ""].join(","));
-  L.push([q("Unfinished tasks costed"), q(d.costFallback ? "yes" : "no"), ""].join(","));
-  L.push([q("Effectiveness profile"), q(plain(pick(PROFILES, "profile").label)), ""].join(","));
-  L.push([q("Hybrid open tier"), q(d.hybridBuy ? "bought" : "rented"), ""].join(","));
+  choices(d).forEach(function(c){ L.push([q(c[0]), q(c[1]), ""].join(",")); });
   L.push("");
 
   L.push(q("SIZING"));
