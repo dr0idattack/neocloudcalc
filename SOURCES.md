@@ -20,10 +20,23 @@ marked **CORRECTED**.
 | OpenAI cached input | $0.125 | **$0.40** | Cached input is 10% of standard input on the GPT-5.4–5.6 tiers |
 | Bedrock | $3 / $15 | **$2 / $10** | Base per-token rates are identical across Bedrock, Claude Platform on AWS and the direct API |
 | Azure | $1.25 / $10 | **$4 / $20** | Tracks OpenAI list. Claude on Microsoft Foundry bills at standard Anthropic API rates |
+| Serverless open weights | — | **$0.30 / $1.20** | Blended rates across OpenRouter, Together AI and Fireworks AI for 70B/MoE models ($0.08 cache read, 5% aggregator fee) |
 
 **CORRECTED.** The original rates were a model generation stale in both
 directions — Anthropic had come down, OpenAI had gone up. The tool had OpenAI
 as the cheap option; it is now the expensive one.
+
+**Frontier simulation rate cards (`FRONTIER`).** The candidate model table compares
+the workload across four frontier cards at list prices:
+- **Claude Sonnet 5**: $2.00 input / $10.00 output / $0.20 cache read
+- **Claude Opus 5**: $15.00 input / $75.00 output / $1.50 cache read
+- **Claude Haiku 4.5**: $1.00 input / $5.00 output / $0.10 cache read
+- **GPT-5.6 Sol**: $4.00 input / $20.00 output / $0.40 cache read
+
+**Serverless open weights (`serverless`).** Rates for hosted open weights (e.g. Qwen 2.5 72B,
+Llama 3.3 70B, DeepSeek V3) via API aggregators: $0.30 / M input, $1.20 / M output,
+$0.08 / M cache read, plus a 5% platform/billing margin (`orFee`). The serverless route
+applies the acceptance token multiplier (`openTokenMult`) to bill for extra retry attempts.
 
 Worth knowing: because Bedrock and Azure carry the same per-token rates as going
 direct, the only thing separating them in the tool is the platform staff line.
@@ -35,14 +48,27 @@ GPT-5.6.
 
 ## 2. Per-seat plans
 
-| Plan | Price |
-| --- | --- |
-| GitHub Copilot Enterprise | $39/user, but requires a GitHub Enterprise Cloud seat at $21 — $60 effective |
-| Cursor Standard / Premium | $40 / $120 per month, Premium being 5x usage for heavy agent workloads |
-| Claude Code enterprise | $20/seat plus usage at API rates |
+| Plan | Price | Ceiling (`tpm`) | Target Audience / Notes |
+| --- | --- | --- | --- |
+| GitHub Copilot Pro | $10/mo | 300 | Individual inline suggestions and basic chat |
+| Claude Pro | $20/mo | 350 | Individual 5-hour rolling message quota (~5.8 tok/s sustained) |
+| Cursor Pro | $20/mo | 350 | Individual 500 fast requests/mo before slow-pool queueing |
+| ChatGPT Plus | $20/mo | 350 | Individual rolling 3-hour caps on GPT-4o / reasoning |
+| Claude Max 5x | $100/mo | 1,800 | 5× standard Pro volume for daily agentic workflows (~30 tok/s) |
+| ChatGPT Pro | $200/mo | 7,000 | Unlimited reasoning and priority high-compute capacity (~116 tok/s) |
+| Claude Max 20x | $400/mo | 7,000 | 20× volume tier for heavy autonomous agent sessions (~116 tok/s) |
+| Cursor Standard | $40/mo | 900 | Small team pool with team management |
+| Cursor Premium | $120/mo | 2,200 | Heavy team agent usage (~37 tok/s sustained) |
+| GitHub Copilot Enterprise | $39/mo | 900 | Enterprise tier, requires $21 GitHub Enterprise Cloud base |
 
-Default changed from $150 to **$120** — Cursor's Premium tier, the one actually
-aimed at agentic coding. Reported real all-in spend across seat plus token for
+Default plan changed from $150 to **$120** — Cursor's Premium tier, the one actually
+aimed at team agentic coding.
+
+**Throughput ceilings (`tpm`).** Individual $20 plans carry strict rolling-window
+request quotas that translate to roughly 350 tokens per minute (~5.8 tok/s) of continuous
+output. Because an agent loop generates 20–50+ tok/s while active, a $20 seat throttles
+quickly under heavy agentic workloads. Teams either upgrade to premium tiers ($100–$200/mo)
+or switch to metered API keys. Reported real all-in spend across seat plus token for
 teams mixing inline and agentic tools is $200–600 per developer per month.
 
 ## 3. Workload — and the tool's best validation
@@ -91,6 +117,16 @@ that is where someone actually shopping for inference capacity would buy.
 | Rack and cooling | $200/kW/month | GPU-density colocation runs $150–250/kW/month. Wholesale averages $196/kW/month across primary North American markets; $80–130 at 1MW+ |
 | Loaded platform engineer | $180,000 → **$260,000** | **CORRECTED.** ML infrastructure base is $130–200K, but fully loaded year-one cost is $210–370K. A $160K base costs $215–240K loaded |
 | Loaded developer | $95/hour | Unchanged — consistent with a fully loaded engineer over 2,080 hours |
+| Staffing ramp ceiling (`platformAt`) | 20 developers | A solo dev or small team does not employ 0.5+ dedicated platform FTEs; ongoing staffing scales `min(1, devs/20)` |
+
+**The small-team staffing ramp.** Previously, the model billed full platform overhead
+even for a single developer (~$10,800/mo in platform, admin rota and cloud-ops FTEs
+against ~$200 of tokens), making self-hosting absurdly expensive at small scale.
+Ongoing staffing now ramps linearly with team size:
+`teamRamp = platformAt > 0 ? Math.min(1, devs / platformAt) : 1` (defaulting to full
+headcount at 20 devs). Fixed one-off setup labour (architecture, bring-up, security review)
+does not ramp because standing up a serving cluster requires the same hours regardless
+of team size.
 
 ## 6. Throughput — the biggest correction
 
@@ -281,7 +317,10 @@ routing policy minimises cost per accepted task.
 - [SWE-bench Pro leaderboard, September 2026 — Morph](https://www.morphllm.com/swe-bench-pro)
 - [SWE-bench leaderboard 2026, what the scores mean — CodeAnt](https://codeant.ai/blogs/swe-bench-scores)
 - [Your coding agent's leaderboard score isn't a production guarantee — HackerNoon](https://hackernoon.com/your-coding-agents-leaderboard-score-isnt-a-production-guarantee)
-- [The best coding agent still gets ~6 in 10 changes wrong — DEV](https://dev.to/tessainsley/the-best-coding-agent-still-gets-6-in-10-changes-wrong-that-is-your-review-load-3h5n)
-- [On the use of agentic coding: an empirical study of pull requests on GitHub — arXiv](https://arxiv.org/pdf/2509.14745)
-- [Agentic code review — O'Reilly Radar](https://www.oreilly.com/radar/agentic-code-review/)
 - [GitHub Copilot Enterprise pricing 2026 — CloudZero](https://www.cloudzero.com/blog/github-copilot-enterprise-pricing/)
+- [OpenRouter model pricing and throughput index — OpenRouter](https://openrouter.ai/docs#models)
+- [Together AI serverless inference pricing 2026 — Together AI](https://www.together.ai/pricing)
+- [Fireworks AI serverless pricing — Fireworks AI](https://fireworks.ai/pricing)
+- [Cursor pricing and usage limits 2026 — Cursor](https://www.cursor.com/pricing)
+- [Claude Pro and Max plan limits — Anthropic](https://support.anthropic.com/en/articles/8324991-about-claude-pro-and-team)
+- [ChatGPT Plus and Pro pricing and rate limits — OpenAI](https://openai.com/chatgpt/pricing/)

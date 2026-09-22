@@ -714,7 +714,10 @@ w("Written down per month", "=hHwCapex/amort", MONEY, "hybridFleetCapex")
 w("Power, rack, storage and support",
   "=hKw*pue*730*kwhDc+hKw*coloKw+storMo+hHwCapex*warranty/12", MONEY, "hybridFleetPower")
 w("Rent the same fleet instead", "=gpusH*gpuRent*730*rentUtil", MONEY, "hybridRentMo")
-w("Total if bought", "=hybridFleetCapex+hybridFleetPower+setupLabour/amort", MONEY, "hybridBuyTotal")
+w("Hybrid setup hours", "=setupArch+hostsH*setupRack+setupStack+setupEval+setupSec",
+  NUM, "hSetupHours", "racked against the hybrid's own hosts, not the standalone fleet's")
+w("Hybrid setup labour", '=IF(labourYN="Yes",hSetupHours*engHr,0)', MONEY, "hSetupLabour")
+w("Total if bought", "=hybridFleetCapex+hybridFleetPower+hSetupLabour/amort", MONEY, "hybridBuyTotal")
 w("Total if rented", "=hybridRentMo+storMo+rentSetup/amort", MONEY, "hybridRentTotal")
 w("Cheaper to buy it?", '=IF(hybridBuyTotal<=hybridRentTotal,"Yes","No")', None, "hybridBuy")
 wk.blank()
@@ -767,9 +770,9 @@ RDEF = {
     "hybrid": dict(
         capex='IF(hybridBuy="Yes",hybridFleetCapex,0)',
         power='IF(hybridBuy="Yes",hybridFleetPower,storMo)',
-        people='platformMo+adminMo+IF(hybridBuy="Yes",setupLabour,rentSetup)/amort',
+        people='platformMo+adminMo+IF(hybridBuy="Yes",hSetupLabour,rentSetup)/amort',
         usage='IF(hybridBuy="Yes",0,hybridRentMo)+' + toks("anIn", "anOut", "anCache", "api_h"),
-        drag="drag_h", upfront='IF(hybridBuy="Yes",hHwCapex+setupLabour,rentSetup)',
+        drag="drag_h", upfront='IF(hybridBuy="Yes",hHwCapex+hSetupLabour,rentSetup)',
         capTps="fleetTpsH", own="own_h", unit=None, unres="unres_h"),
     "seats": dict(
         capex="0", power="0", people="platformMo",
@@ -1263,9 +1266,12 @@ srow("gpusH", "Hybrid cards", "{c}${repsH}*gpusPerReplica", NUM)
 srow("hostsH", "Hybrid hosts", "CEILING({c}${gpusH}/8,1)", NUM)
 srow("hCapexH", "Hybrid hardware capital",
      "{c}${gpusH}*gpuBuy*(1+spares)+{c}${hostsH}*(hostCost+netFabric+installHost)", money=True)
+srow("setupLH", "Hybrid setup labour",
+     'IF(labourYN="Yes",(setupArch+{c}${hostsH}*setupRack+setupStack+setupEval+setupSec)*engHr,0)',
+     money=True, note="against the hybrid's own hosts")
 srow("hBuyT", "Hybrid, if bought",
      "{c}${hCapexH}/amort+{c}${gpusH}*gpuW/1000*1.25*(pue*730*kwhDc+coloKw)+storMo"
-     "+{c}${hCapexH}*warranty/12+{c}${setupL}/amort", money=True)
+     "+{c}${hCapexH}*warranty/12+{c}${setupLH}/amort", money=True)
 srow("hRentT", "Hybrid, if rented",
      "{c}${gpusH}*gpuRent*730*rentUtil+storMo+rentSetup/amort", money=True)
 srow("hBuy", "Cheaper to buy the hybrid fleet?",
@@ -1320,7 +1326,7 @@ srow("cashBuy", "Full-term cash, buying the fleet",
 srow("cashRent", "Full-term cash, renting the fleet",
      "rentSetup+({c}${rt_rent}-{c}${dragO})*horizon", money=True)
 srow("cashHyb", "Full-term cash, hybrid",
-     'IF({c}${hBuy}="Yes",{c}${hCapexH}+{c}${setupL},rentSetup)'
+     'IF({c}${hBuy}="Yes",{c}${hCapexH}+{c}${setupLH},rentSetup)'
      '+({c}${rt_hybrid}-IF({c}${hBuy}="Yes",{c}${hCapexH}/amort,0)-{c}${dragH})*horizon',
      money=True)
 srow("cashHosted", "Full-term cash, cheapest hosted",
