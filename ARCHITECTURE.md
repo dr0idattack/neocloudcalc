@@ -313,7 +313,27 @@ A fixed baseline bites hardest at small scale, and many organisations already ru
 a gateway serving many workloads. The **entitlement switch** zeroes it; to model
 an allocated share instead, lower the FTE rather than switching it off.
 
-### The nine routes
+**The staffing ramp.** Charging the full baseline at every head count made small
+answers absurd: half an FTE is $10,800 a month against roughly $200 of tokens for
+one developer. Ongoing staffing — the baseline team, the fleet admin rota and the
+cloud-ops share — therefore scales with the team:
+
+```
+teamRamp = platformAt > soloAt
+  ? min(1, max(0, (devs - soloAt) / (platformAt - soloAt)))
+  : (devs > soloAt ? 1 : 0)
+```
+
+It is zero at or below `soloAt` and full at `platformAt`. A straight
+`devs / platformAt` ramp was tried first and is wrong: it keeps the *per
+developer* staffing charge flat all the way down, so one developer still carried
+a twentieth of an FTE — $542 a month against a $20 subscription.
+
+One-off setup labour does **not** ramp. Standing up a serving stack, evaluating a
+model and passing a security review cost the same hours whoever they are for, and
+charging them in full is what keeps self-hosting honest at small scale.
+
+### The ten routes
 
 | Route | capex | power | people | usage |
 | --- | --- | --- | --- | --- |
@@ -680,6 +700,46 @@ Not modelled, and worth saying out loud:
 - The cost of shipping a year behind
 
 Several of these are large. The tool is a frame for an argument, not a quote.
+
+## 9. The offline edition
+
+`Coding-Model-TCO-Calculator.xlsx` is the same model as a spreadsheet, generated
+by `tools/build_xlsx.py`. It is never hand-edited.
+
+**Constraints, in order of importance.**
+
+1. *No macros.* A `.xlsm` buys nothing this model needs and costs it macOS,
+   locked-down Windows estates, LibreOffice and Google Sheets.
+2. *Excel 2016 vocabulary only.* `INDEX`/`MATCH`, not `XLOOKUP`; `RANK` plus a
+   `COUNTIF` tie-break, not `SORT`. No spilling array function appears anywhere,
+   because a generated file carries no spill metadata.
+3. *Formulas, never baked results.* Every figure recalculates from `Inputs`.
+4. *One input, one cell, one name.* Roughly ninety defined names carry the inputs
+   and the intermediates, so a formula on any sheet reads as prose.
+
+**Six tabs.** `Answer` (verdict, ranking, stacked bar), `Inputs` (everything
+editable; blue cells, and an Override column that beats the catalogue), `Models`
+(every rate card priced at your volume, and the fleet each set of open weights
+would need), `Scale` (the model replayed at twelve team sizes, with the
+break-even and a cost-per-developer curve), `Workings` (the funnel, the sizing
+chain, the route table), `Catalogues` (specs and list prices).
+
+**The break-even on `Scale` is not the web app's number.** The page scans team
+sizes re-running the model with open acceptance forced equal to the frontier's,
+which also shrinks the fleet. The workbook instead compares full-term cash for
+the cheapest fleet you own against the cheapest hosted route, with each route's
+developer-time charge stripped from both sides. Same question — is the
+infrastructure cheaper — answered without a second full replay. Laptops are
+excluded from it: one machine per developer is a different question from a fleet.
+
+**Verification.** LibreOffice cannot open `.xlsx` files in the build sandbox, so
+`recalc.py` is unavailable here; the workbook is instead evaluated with the
+`formulas` package and checked cell by cell against the live page at the default
+sixty-developer run. All ten routes must agree on monthly cost, up-front cash,
+cost per developer and AI cost per accepted task, and the sizing chain must agree
+on memory, cards, throughput, time to first token and storage. A change that
+breaks that agreement is a bug in whichever side moved.
+
 
 Every default's provenance, the corrections made after checking them against
 published figures, and the validation of the model against published break-even

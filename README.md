@@ -16,19 +16,26 @@ all. Not just a price per token.
 
 This puts all of it on one scale.
 
-## The nine routes
+## The ten routes
 
 | Route | Group | Cost is mostly |
 | --- | --- | --- |
 | Local model on laptops | Your own hardware | Laptop uplift + lost developer time |
 | GPUs you buy | Your own hardware | Card capex, power, rack, platform staff |
 | GPUs you rent by the hour | Your own hardware | Hourly card rent |
+| Open model, hosted by someone else | Serverless open weights | Tokens, at open-weight rates |
 | AWS Bedrock | Cloud platform | Tokens + cloud plumbing staff |
 | Azure OpenAI | Cloud platform | Tokens + cloud plumbing staff |
 | Anthropic API | Direct from the lab | Tokens + baseline platform team |
 | OpenAI API | Direct from the lab | Tokens + baseline platform team |
-| Flat per-seat plans | Direct from the lab | Seats + baseline platform team |
+| Flat per-seat plans | Direct from the lab | Seats, individual or enterprise |
 | Open model, frontier fallback | Hybrid | A small fleet + escalation tokens |
+
+Staffing scales with the team. Nobody is employed to run this below the
+small-team threshold, and the baseline reaches full strength at the head count
+you set — which is why one developer is quoted the price of a subscription and
+not a fraction of a platform engineer. One-off setup labour does not scale down:
+standing up a serving stack is the same work whoever it is for.
 
 Every centralised route carries a baseline platform team — a gateway, secrets,
 IAM, observability, evals and a security review do not appear only because the
@@ -73,7 +80,7 @@ get interesting.
 **Cost.** Monthly and over the full horizon, per developer and per million output
 tokens, broken down by where the money goes.
 
-## Two modes
+## Four readers, one model
 
 **Simple** gives you three levers, because three is what actually moves the
 answer: how many developers, how hard they use it, and how often the open-weight
@@ -84,9 +91,15 @@ Effectiveness comes as named profiles — Optimistic, Observed, Conservative,
 Custom — anchored on SWE-bench Pro pass@1, which spans roughly 27–60% and is far
 from saturated. Touch any of the six fields and the profile drops to Custom.
 
-**Advanced** opens all six panels — workload, model and precision, money and
-time, accelerators, facility and laptops, and every published rate — plus team
-presets for Solo, Startup, Midsize and Enterprise.
+**Advanced** opens every panel — workload, model and precision, money and time,
+accelerators, facility and laptops, and every published rate — plus team presets
+for Solo, Startup, Midsize and Enterprise. **Money** answers the CFO's question:
+cash by year, capital against operating, and what it costs to stop. **Build**
+answers the CTO's: sizing, capacity and the bill of materials.
+
+The recommendation leads every one of them, and it reads the scale it is given —
+at or below the small-team threshold it names the cheapest plan that keeps up
+with a live session instead of talking about platforms.
 
 Works on a phone, a tablet and a desktop.
 
@@ -132,6 +145,32 @@ saving actually buys. When it is smaller than what your acceptance gap costs, no
 amount of GPU shopping changes the answer. Self-hosting a coding model is a bet
 on the open model being nearly as good — not on it being cheaper.
 
+## The offline edition
+
+`Coding-Model-TCO-Calculator.xlsx` is the same model as a spreadsheet, for when
+the answer has to travel to someone who will not open a web page.
+
+**No macros.** Every figure is an ordinary formula, and every function predates
+Excel 2016, so it opens and recalculates on Windows, on macOS, in LibreOffice and
+in Google Sheets with nothing to enable and no security banner.
+
+| Tab | What is on it |
+| --- | --- |
+| `Answer` | The recommendation, the ranking, and a stacked bar of where the money goes |
+| `Inputs` | Every assumption. Blue cells are yours; the Override column beats the catalogue |
+| `Models` | The same month of work priced on every rate card, and the fleet each set of open weights would need |
+| `Scale` | The whole model replayed at twelve team sizes, with the break-even and a cost-per-developer curve |
+| `Workings` | Every intermediate the answer stands on — the funnel, the sizing, the route table |
+| `Catalogues` | Model specs, card specs, plan prices and rate cards, all editable |
+
+Rebuild it with `python3 tools/build_xlsx.py`. The generator is the source of
+truth for the workbook; do not hand-edit the file and expect the edit to survive.
+
+The workbook and the web app were checked against each other at the default
+sixty-developer run: all ten routes agree on monthly cost, up-front cash, cost
+per developer and AI cost per accepted task, and the sizing chain agrees on
+memory, cards, throughput, time to first token and storage.
+
 ## Health warning
 
 Every rate, card price and model spec is a default typed in from public figures
@@ -173,4 +212,6 @@ Pages itself on the first run.
 | `SOURCES.md` | Every default's provenance, the corrections, and validation against published figures |
 | `.github/workflows/ci.yml` | Validates pull requests, publishes `main` to GitHub Pages |
 | `scripts/check.mjs` | The validation run in CI; run it locally with `node scripts/check.mjs` |
+| `Coding-Model-TCO-Calculator.xlsx` | The offline edition — formulas only, no macros |
+| `tools/build_xlsx.py` | Generates the workbook; the only supported way to change it |
 | `AGENTS.md` | Directions for AI agents working in this repo |

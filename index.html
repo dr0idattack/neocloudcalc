@@ -1230,7 +1230,17 @@ function compute(){
   var hwCapex     = cards + sparesCost + chassis + fabric + install;
   var buyUpfront  = hwCapex + setupLabour;
   var warrantyMo  = hwCapex * (v("warranty") / 100) / 12;
-  var teamRamp    = v("platformAt") > 0 ? Math.min(1, devs / v("platformAt")) : 1;
+  /* Below the small-team threshold nobody is employed to run this: the work is
+     absorbed by the people doing it. A straight devs/platformAt ramp missed
+     that, because it keeps the per-developer staffing charge flat all the way
+     down - one developer still carried a twentieth of an FTE, $542 a month
+     against a $20 subscription. Staffing now starts at the small-team
+     threshold and reaches full strength at platformAt. One-off setup labour
+     is untouched: standing up a serving stack is the same work whoever it is
+     for, which is what keeps self-hosting honest at small scale. */
+  var teamRamp    = v("platformAt") > v("soloAt")
+    ? Math.min(1, Math.max(0, (devs - v("soloAt")) / (v("platformAt") - v("soloAt"))))
+    : (devs > v("soloAt") ? 1 : 0);
   var adminMo     = labourOn() ? v("adminFte") * fteMo * teamRamp : 0;
   var cloudOpsMo  = labourOn() ? v("cloudOps") * fteMo * teamRamp : 0;
 
