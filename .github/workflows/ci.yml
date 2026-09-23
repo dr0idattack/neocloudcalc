@@ -25,6 +25,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: node scripts/check.mjs
+      # Browser tests: no npm install, just Node 22 (for its built-in
+      # WebSocket) and the Chrome already on the runner.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
 
   # Deploys only from the default branch. An earlier version ran on every
   # feature-branch push, which meant each commit on a pull request tried to

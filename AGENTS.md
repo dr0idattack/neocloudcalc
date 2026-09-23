@@ -165,7 +165,15 @@ This tool makes an argument about money. Three rules protect it:
 
 ## Before you push
 
-There are no tests. Open `index.html` in a browser and check:
+Run `node scripts/test.mjs`. It needs Node 22+ and a local Chrome or Chromium
+(set `CHROME_PATH` if it cannot find one), and nothing else — it talks to the
+browser over the DevTools protocol with Node's built-in WebSocket. It covers the
+honesty rules above, the presets, Reset, Developers = 0, the CSV, print and the
+no-sideways-scroll widths. If you fix a bug, add a test that fails without the
+fix. Do not add a test framework to run it.
+
+The tests cannot judge whether a number is *sensible* or a layout *looks* right.
+Open `index.html` in a browser and check:
 
 - The four presets (Solo / Startup / Midsize / Enterprise) all produce sensible
   numbers, and **Reset** returns to defaults.

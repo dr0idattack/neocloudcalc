@@ -161,7 +161,8 @@ Copy is there for anywhere that will not let a page save one.
 `.github/workflows/ci.yml` does two things. On every pull request it runs
 `scripts/check.mjs`, which verifies the inline script parses, every control id
 the model reads is defined, and every theme token is declared on the bare
-`:root`. On a push to `main` it publishes the site to GitHub Pages, enabling
+`:root`. Then it runs `scripts/test.mjs`, which opens the page in headless
+Chrome and tests the cost model and the layout. On a push to `main` it publishes the site to GitHub Pages, enabling
 Pages itself on the first run.
 
 ## Files
@@ -173,4 +174,5 @@ Pages itself on the first run.
 | `SOURCES.md` | Every default's provenance, the corrections, and validation against published figures |
 | `.github/workflows/ci.yml` | Validates pull requests, publishes `main` to GitHub Pages |
 | `scripts/check.mjs` | The validation run in CI; run it locally with `node scripts/check.mjs` |
+| `scripts/test.mjs` | Browser tests, no dependencies (Node 22+ and Chrome); run with `node scripts/test.mjs` |
 | `AGENTS.md` | Directions for AI agents working in this repo |
